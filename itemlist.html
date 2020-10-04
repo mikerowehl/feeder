@@ -1,9 +1,18 @@
-<html>
+<!doctype html>
+<html lang="en">
+<head>
+<style type="text/css">
+body { width: 100%; text-align: center; }
+#centerContainer { width: 900px; text-align: left; margin: 0px auto; }
+</style>
+</head>
 <body>
-    <ul>
-        {{range .Items}}
-        <li>{{.Title}}</li>
-        {{end}}
-    </ul>
+	<div id="centerContainer">
+    {{range .Items}}
+        <h1>{{.Title}}</h1>
+		<h2><a href="{{.Link}}" target="_blank">{{.Link}}</a></h2>
+		{{noescape .Content}}
+    {{end}}
+	</div>
 </body>
 </html>

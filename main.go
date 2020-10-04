@@ -26,7 +26,7 @@ type Item struct {
 	Link      string
 	Content   string
 	GUID      string `gorm:"unique"`
-	State     string
+	Read      bool
 	Published time.Time
 }
 
@@ -35,18 +35,25 @@ type ItemListPage struct {
 }
 
 func handleItemsUnread(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
-	unreadItem := Item{State: "unread"}
+	unreadItem := Item{Read: false}
 	itemEntries := []Item{}
 	res := db.Limit(10).Order("published").Where(&unreadItem).Find(&itemEntries)
 	if res.Error != nil {
 		fmt.Fprintf(w, "Error reading from DB: %s", res.Error)
 		return
 	}
-	tmpl := template.Must(template.ParseFiles("itemlist.html"))
+	tmpl := template.Must(template.New("itemlist.html").Funcs(template.FuncMap{
+		"noescape": func(s string) template.HTML {
+			return template.HTML(s)
+		},
+	}).ParseFiles("itemlist.html"))
 	page := ItemListPage{
 		Items: itemEntries,
 	}
-	tmpl.Execute(w, page)
+	err := tmpl.Execute(w, page)
+	if err != nil {
+		fmt.Printf("Error running template %v\n", err)
+	}
 }
 
 func processItem(db *gorm.DB, feedEntry *Feed, item *gofeed.Item) (added bool, err error) {
@@ -70,7 +77,7 @@ func processItem(db *gorm.DB, feedEntry *Feed, item *gofeed.Item) (added bool, e
 		Link:      item.Link,
 		Content:   content,
 		GUID:      item.GUID,
-		State:     "unread",
+		Read:      false,
 		Published: *item.PublishedParsed,
 	}
 	feedEntry.Items = append(feedEntry.Items, newItem)
