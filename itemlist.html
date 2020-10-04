@@ -7,12 +7,12 @@ body { width: 100%; text-align: center; }
 </style>
 </head>
 <body>
-	<div id="centerContainer">
+    <div id="centerContainer">
     {{range .Items}}
         <h1>{{.Title}}</h1>
-		<h2><a href="{{.Link}}" target="_blank">{{.Link}}</a></h2>
-		{{noescape .Content}}
+        <h2><a href="{{.Link}}" target="_blank">{{.Link}}</a></h2>
+        {{noescape .Content}}
     {{end}}
-	</div>
+    </div>
 </body>
 </html>
