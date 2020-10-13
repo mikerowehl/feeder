@@ -132,6 +132,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Println("DB open, migrating")
 	db.AutoMigrate(&Feed{}, &Item{})
 	go pollFeeds(db)
 	log.Println("Starting the http server")
