@@ -35,9 +35,8 @@ type ItemListPage struct {
 }
 
 func handleItemsUnread(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
-	unreadItem := Item{Read: false}
 	itemEntries := []Item{}
-	res := db.Limit(10).Order("published").Where(&unreadItem).Find(&itemEntries)
+	res := db.Debug().Limit(10).Order("published").Where("read = ?", false).Find(&itemEntries)
 	if res.Error != nil {
 		fmt.Fprintf(w, "Error reading from DB: %s", res.Error)
 		return
@@ -54,6 +53,19 @@ func handleItemsUnread(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Printf("Error running template %v\n", err)
 	}
+}
+
+func handleMarkRead(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Fprintf(w, "Error parsing form: %v", err)
+		return
+	}
+	guid := r.FormValue("guid")
+	log.Println("Marking as read: ", guid)
+	db.Debug().Model(&Item{}).Where("guid = ?", guid).Update("read", true)
+	fmt.Fprintf(w, "Updated read status for %s", guid)
+	return
 }
 
 func processItem(db *gorm.DB, feedEntry *Feed, item *gofeed.Item) (added bool, err error) {
@@ -138,6 +150,9 @@ func main() {
 	log.Println("Starting the http server")
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		handleItemsUnread(db, w, r)
+	})
+	http.HandleFunc("/markread", func(w http.ResponseWriter, r *http.Request) {
+		handleMarkRead(db, w, r)
 	})
 	log.Fatal(http.ListenAndServe(":9090", nil))
 }
