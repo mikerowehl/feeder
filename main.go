@@ -45,7 +45,7 @@ func handleItemsUnread(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		"noescape": func(s string) template.HTML {
 			return template.HTML(s)
 		},
-	}).ParseFiles("itemlist.html"))
+	}).ParseFiles("./templates/itemlist.html"))
 	page := ItemListPage{
 		Items: itemEntries,
 	}
@@ -154,5 +154,7 @@ func main() {
 	http.HandleFunc("/markread", func(w http.ResponseWriter, r *http.Request) {
 		handleMarkRead(db, w, r)
 	})
+	fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	log.Fatal(http.ListenAndServe(":9090", nil))
 }
