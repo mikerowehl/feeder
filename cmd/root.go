@@ -17,9 +17,11 @@ var rootCmd = &cobra.Command{
 	Short: "A basic command line syndicated feed processor",
 	Long: `Use the add command to build up a list of feeds to process. The fetch
 command then pulls down the feeds and merges them into a summary page.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) == 0 {
+			cmd.Help()
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -31,14 +33,9 @@ func Execute() {
 	}
 }
 
+var dbFile string
+
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.feeder.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringVar(&dbFile, "dbFile", "feeder.db",
+		"database file name (default feeder.db)")
 }
