@@ -15,12 +15,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// The sqlite driver uses this special name to swap to an in-memory version
+// that's both really fast, and that goes away automatically after the tests
+// run. So we can avoid cleanup or startup hooks. If you want to see the data
+// from a test you can always just make this a normal filename and it'll write
+// the file out to make it easy to debug.
+var dbFilename = ":memory:"
+
 func TestRepository_BasicSaveAndLoad(t *testing.T) {
-	r, err := repository.NewFeedRepository("test.db")
+	r, err := repository.NewFeedRepository(dbFilename)
 	require.NoError(t, err)
-	testFeed := rss.Feed{URL: "https://test.com/sample.rss"}
+	feedUrl := "https://test.com/sample.rss"
+	testFeed := rss.Feed{URL: feedUrl}
 	err = r.Save(&testFeed)
 	require.NoError(t, err)
 	fetchedFeeds, err := r.All()
-	assert.Len(t, fetchedFeeds, 1)
+	require.Len(t, fetchedFeeds, 1)
+	feed1 := fetchedFeeds[0]
+	assert.Equal(t, feedUrl, feed1.URL)
 }
