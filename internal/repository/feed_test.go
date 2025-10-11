@@ -22,15 +22,44 @@ import (
 // the file out to make it easy to debug.
 var dbFilename = ":memory:"
 
-func TestRepository_BasicSaveAndLoad(t *testing.T) {
+func setupRepository(t *testing.T) *repository.FeedRepository {
+	t.Helper()
 	r, err := repository.NewFeedRepository(dbFilename)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("failed to create repository: %v", err)
+	}
+
+	t.Cleanup(func() {
+		err := r.Close()
+		if err != nil {
+			t.Fatalf("failed to close respository: %v", err)
+		}
+	})
+	return r
+}
+
+func TestRepository_BasicSaveAndLoad(t *testing.T) {
+	r := setupRepository(t)
 	feedUrl := "https://test.com/sample.rss"
 	testFeed := rss.Feed{URL: feedUrl}
-	err = r.Save(&testFeed)
+	err := r.Save(&testFeed)
 	require.NoError(t, err)
 	fetchedFeeds, err := r.All()
 	require.Len(t, fetchedFeeds, 1)
 	feed1 := fetchedFeeds[0]
 	assert.Equal(t, feedUrl, feed1.URL)
+}
+
+func TestRepository_UniqueURLViolation(t *testing.T) {
+	r := setupRepository(t)
+	feedUrl := "https://test.com/sample.rss"
+	testFeed1 := rss.Feed{URL: feedUrl}
+	err := r.Save(&testFeed1)
+	require.NoError(t, err)
+	testFeed2 := rss.Feed{URL: feedUrl}
+	err = r.Save(&testFeed2)
+	require.Error(t, err)
+	// Unfortunately the sqlite driver doesn't return the nice duplicate key
+	// GORM level error, so check the text.
+	assert.Contains(t, err.Error(), "UNIQUE constraint failed")
 }

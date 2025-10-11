@@ -33,3 +33,12 @@ func (r *FeedRepository) All() ([]rss.Feed, error) {
 	err := r.db.Find(&feeds).Error
 	return feeds, err
 }
+
+func (r *FeedRepository) Close() error {
+	sqliteDb, err := r.db.DB()
+	if err != nil {
+		return err
+	}
+	sqliteDb.Close()
+	return nil
+}
