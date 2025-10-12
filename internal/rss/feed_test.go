@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/mikerowehl/feeder/internal/rss"
+	"github.com/mikerowehl/feeder/test/mock"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,6 +37,14 @@ var basicFeed = `<?xml version="1.0" encoding="UTF-8" ?>
 func TestFeed_EmptyFeed(t *testing.T) {
 	feed := rss.Feed{}
 	err := feed.Process(basicFeed)
+	require.NoError(t, err)
+	assert.Len(t, feed.Items, 2)
+}
+
+func TestFeed_FetchSimple(t *testing.T) {
+	client := mock.NewMockClient(basicFeed)
+	feed := rss.Feed{URL: "https://testing.com/dummyfeed.rss"}
+	err := feed.Fetch(client)
 	require.NoError(t, err)
 	assert.Len(t, feed.Items, 2)
 }
