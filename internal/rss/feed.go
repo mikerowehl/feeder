@@ -82,6 +82,7 @@ func (feed *Feed) Process(content string) error {
 				guid = i.Link
 			}
 			feed.Items = append(feed.Items, Item{
+				FeedID:  feed.ID,
 				Title:   i.Title,
 				Link:    i.Link,
 				Content: content,

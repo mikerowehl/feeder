@@ -25,12 +25,24 @@ func NewFeedRepository(filename string) (*FeedRepository, error) {
 }
 
 func (r *FeedRepository) Save(feed *rss.Feed) error {
-	return r.db.Save(feed).Error
+	err := r.db.Save(feed).Error
+	if err != nil {
+		return err
+	}
+	for _, item := range feed.Items {
+		if item.ID != 0 {
+			err := r.db.Save(&item).Error
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (r *FeedRepository) All() ([]rss.Feed, error) {
 	var feeds []rss.Feed
-	err := r.db.Find(&feeds).Error
+	err := r.db.Preload("Items").Find(&feeds).Error
 	return feeds, err
 }
 

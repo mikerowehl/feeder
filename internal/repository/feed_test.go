@@ -45,6 +45,7 @@ func TestRepository_BasicSaveAndLoad(t *testing.T) {
 	err := r.Save(&testFeed)
 	require.NoError(t, err)
 	fetchedFeeds, err := r.All()
+	require.NoError(t, err)
 	require.Len(t, fetchedFeeds, 1)
 	feed1 := fetchedFeeds[0]
 	assert.Equal(t, feedUrl, feed1.URL)
@@ -62,4 +63,22 @@ func TestRepository_UniqueURLViolation(t *testing.T) {
 	// Unfortunately the sqlite driver doesn't return the nice duplicate key
 	// GORM level error, so check the text.
 	assert.Contains(t, err.Error(), "UNIQUE constraint failed")
+}
+
+func TestRepository_FeedWithItems(t *testing.T) {
+	r := setupRepository(t)
+	feedUrl := "https://test.com/sample.rss"
+	testFeed := rss.Feed{URL: feedUrl}
+	err := r.Save(&testFeed)
+	require.NoError(t, err)
+	feedId := testFeed.ID
+	testItem1 := rss.Item{FeedID: feedId, GUID: "1", Content: "test item 1"}
+	testItem2 := rss.Item{FeedID: feedId, GUID: "2", Content: "test item 2"}
+	testFeed.Items = append(testFeed.Items, testItem1, testItem2)
+	err = r.Save(&testFeed)
+	require.NoError(t, err)
+	fetchedFeeds, err := r.All()
+	require.NoError(t, err)
+	require.Len(t, fetchedFeeds, 1)
+	require.Len(t, fetchedFeeds[0].Items, 2)
 }
