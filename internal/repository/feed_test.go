@@ -82,3 +82,22 @@ func TestRepository_FeedWithItems(t *testing.T) {
 	require.Len(t, fetchedFeeds, 1)
 	require.Len(t, fetchedFeeds[0].Items, 2)
 }
+
+func TestRepository_Unread(t *testing.T) {
+	r := setupRepository(t)
+	feedUrl := "https://test.com/sample.rss"
+	testFeed := rss.Feed{URL: feedUrl}
+	err := r.Save(&testFeed)
+	require.NoError(t, err)
+	feedId := testFeed.ID
+	testItem1 := rss.Item{FeedID: feedId, GUID: "1", Content: "test item 1", Read: true}
+	testItem2 := rss.Item{FeedID: feedId, GUID: "2", Content: "test item 2", Read: false}
+	testFeed.Items = append(testFeed.Items, testItem1, testItem2)
+	err = r.Save(&testFeed)
+	require.NoError(t, err)
+	unread, err := r.Unread()
+	require.NoError(t, err)
+	require.Len(t, unread, 1)
+	require.Len(t, unread[0].Items, 1)
+	assert.Equal(t, "2", unread[0].Items[0].GUID)
+}

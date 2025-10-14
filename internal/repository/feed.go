@@ -46,6 +46,12 @@ func (r *FeedRepository) All() ([]rss.Feed, error) {
 	return feeds, err
 }
 
+func (r *FeedRepository) Unread() ([]rss.Feed, error) {
+	var feeds []rss.Feed
+	err := r.db.Preload("Items", "read = ?", false).Find(&feeds).Error
+	return feeds, err
+}
+
 func (r *FeedRepository) Close() error {
 	sqliteDb, err := r.db.DB()
 	if err != nil {
