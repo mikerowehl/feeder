@@ -1,6 +1,6 @@
 # feeder
 
-![Build Status](https://github.com/mikerowehl/feeder/actions/workflows/go.yml/badge.svg?branch=main)
+[![Go](https://github.com/mikerowehl/feeder/actions/workflows/go.yml/badge.svg)](https://github.com/mikerowehl/feeder/actions/workflows/go.yml)
 
 # Feeder - command line syndicated feed tool
 
