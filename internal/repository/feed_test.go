@@ -69,20 +69,19 @@ func TestRepository_UniqueURLViolation(t *testing.T) {
 
 func TestRepository_FeedWithItems(t *testing.T) {
 	r := setupRepository(t)
-	feedUrl := "https://test.com/sample.rss"
-	testFeed := rss.Feed{URL: feedUrl}
-	err := r.Save(&testFeed)
+	feeds := []rss.Feed{
+		{Title: "Test Feed 1",
+			URL:   "https://test.com/sample.rss",
+			Items: []rss.Item{{GUID: "1", Content: "test item 1"}},
+		}}
+	err := r.Save(&(feeds[0]))
 	require.NoError(t, err)
-	feedId := testFeed.ID
-	testItem1 := rss.Item{FeedID: feedId, GUID: "1", Content: "test item 1"}
-	testItem2 := rss.Item{FeedID: feedId, GUID: "2", Content: "test item 2"}
-	testFeed.Items = append(testFeed.Items, testItem1, testItem2)
-	err = r.Save(&testFeed)
+	fetched, err := r.All()
 	require.NoError(t, err)
-	fetchedFeeds, err := r.All()
-	require.NoError(t, err)
-	require.Len(t, fetchedFeeds, 1)
-	require.Len(t, fetchedFeeds[0].Items, 2)
+	diff := cmp.Diff(feeds, fetched)
+	if diff != "" {
+		t.Errorf("Mismatch single feed:\n%s", diff)
+	}
 }
 
 func TestRepository_MultipleFeeds(t *testing.T) {
@@ -126,7 +125,7 @@ func TestRepository_MultipleFeeds(t *testing.T) {
 		}),
 	)
 	if diff != "" {
-		t.Errorf("Mismatch multiple fields:\n%s", diff)
+		t.Errorf("Mismatch multiple feeds:\n%s", diff)
 	}
 }
 

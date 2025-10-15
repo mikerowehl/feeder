@@ -128,7 +128,6 @@ func (feed *Feed) Process(content string) error {
 			return search.GUID == item.GUID
 		})
 		if found == -1 {
-			item.FeedID = feed.ID
 			feed.Items = append(feed.Items, item)
 		}
 	}

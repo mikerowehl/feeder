@@ -29,14 +29,6 @@ func (r *FeedRepository) Save(feed *rss.Feed) error {
 	if err != nil {
 		return err
 	}
-	for _, item := range feed.Items {
-		if item.ID != 0 {
-			err := r.db.Save(&item).Error
-			if err != nil {
-				return err
-			}
-		}
-	}
 	return nil
 }
 
