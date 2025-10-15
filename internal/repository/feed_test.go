@@ -8,6 +8,8 @@ package repository_test
 import (
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/mikerowehl/feeder/internal/repository"
 	"github.com/mikerowehl/feeder/internal/rss"
 
@@ -81,6 +83,51 @@ func TestRepository_FeedWithItems(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, fetchedFeeds, 1)
 	require.Len(t, fetchedFeeds[0].Items, 2)
+}
+
+func TestRepository_MultipleFeeds(t *testing.T) {
+	r := setupRepository(t)
+	feeds := []rss.Feed{
+		{Title: "Feed 1", URL: "https://example.com/feed1.rss", Items: []rss.Item{
+			{Title: "Feed 1 Item 1",
+				Link:    "https://feed1.com/i1",
+				Content: "content for 1/1",
+				GUID:    "guid1"},
+			{Title: "Feed 1 Item 2",
+				Link:    "https://feed1.com/i2",
+				Content: "content for 1/2",
+				GUID:    "guid2"},
+		}},
+		{Title: "Feed 2", URL: "https://example.com/feed2.rss", Items: []rss.Item{
+			{Title: "Feed 2 Item 1",
+				Link:    "https://feed2.com/i1",
+				Content: "content for 2/1",
+				GUID:    "guid10"},
+			{Title: "Feed 2 Item 2",
+				Link:    "https://feed2.com/i2",
+				Content: "content for 2/2",
+				GUID:    "guid11"},
+		}},
+	}
+	for _, feed := range feeds {
+		err := r.Save(&feed)
+		require.NoError(t, err)
+	}
+	fetched, err := r.All()
+	require.NoError(t, err)
+	diff := cmp.Diff(feeds, fetched,
+		cmpopts.IgnoreFields(rss.Feed{}, "ID", "CreatedAt", "UpdatedAt", "DeletedAt"),
+		cmpopts.IgnoreFields(rss.Item{}, "ID", "CreatedAt", "UpdatedAt", "DeletedAt", "FeedID"),
+		cmpopts.SortSlices(func(a, b rss.Feed) bool {
+			return a.Title < b.Title
+		}),
+		cmpopts.SortSlices(func(a, b rss.Item) bool {
+			return a.Title < b.Title
+		}),
+	)
+	if diff != "" {
+		t.Errorf("Mismatch multiple fields:\n%s", diff)
+	}
 }
 
 func TestRepository_Unread(t *testing.T) {
