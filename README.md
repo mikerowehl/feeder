@@ -15,15 +15,15 @@ self contained and on a single page.
 
 Add a few feeds to the database:
 
-* feeder add https://rowehl.com/feed.xml
-* feeder add https://pluralistic.net/feed/
+* `feeder add https://rowehl.com/feed.xml`
+* `feeder add https://pluralistic.net/feed/`
 
 Pull down the content:
 
-* feeder fetch
+* `feeder fetch`
 
 Make a page with links to each of the items from the feeds:
 
-* feeder read
+* `feeder read`
 
 Right now the read command just outputs to a file named feeder.html in the current directory.
