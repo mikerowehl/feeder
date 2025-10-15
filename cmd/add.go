@@ -8,6 +8,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/mikerowehl/feeder/internal/repository"
 	"github.com/mikerowehl/feeder/internal/rss"
@@ -33,7 +34,11 @@ ex: feeder add "https://rowehl.com/feed.xml"`,
 			log.Fatalf("Error setting up database: %v", err)
 		}
 		defer r.Close()
-		feed := rss.Feed{URL: feedUrl}
+		client := &http.Client{}
+		feed, err := rss.FeedFromURL(feedUrl, client)
+		if err != nil {
+			log.Fatalf("Error creating feed from url: %v", err)
+		}
 		err = r.Save(&feed)
 		if err != nil {
 			log.Fatalf("Error adding feed: %v", err)
