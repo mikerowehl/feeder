@@ -1,5 +1,7 @@
 # feeder
 
+![Build Status](https://github.com/mikerowehl/feeder/actions/workflows/go.yml/badge.svg?branch=main)
+
 # Feeder - command line syndicated feed tool
 
 <img src="gopher_bowl.png" width="200" alt="Go Gopher with a bowl of RSS feed icons">
