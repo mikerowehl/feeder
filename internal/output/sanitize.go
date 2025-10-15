@@ -38,6 +38,7 @@ func SanitizeFeeds(raw []rss.Feed) []rss.Feed {
 	var sanitizedFeeds []rss.Feed
 	for _, rawFeed := range raw {
 		sanitizedFeed := rss.Feed{
+			Title: rawFeed.Title,
 			URL:   SafeURL(rawFeed.URL),
 			Items: SanitizeItems(rawFeed.Items),
 		}
