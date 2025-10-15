@@ -18,6 +18,7 @@ import (
 type Feed struct {
 	gorm.Model
 	URL   string `gorm:"unique"`
+	Title string
 	Items []Item
 }
 
@@ -69,17 +70,17 @@ func (feed *Feed) Process(content string) error {
 		return err
 	}
 	for _, i := range parsed.Items {
+		guid := i.GUID
+		if guid == "" {
+			guid = i.Link
+		}
 		found := slices.IndexFunc(feed.Items, func(search Item) bool {
-			return search.GUID == i.GUID
+			return search.GUID == guid
 		})
 		if found == -1 {
 			content := i.Content
 			if content == "" {
 				content = i.Description
-			}
-			guid := i.GUID
-			if guid == "" {
-				guid = i.Link
 			}
 			feed.Items = append(feed.Items, Item{
 				FeedID:  feed.ID,
