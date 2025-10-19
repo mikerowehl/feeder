@@ -147,3 +147,20 @@ func TestRepository_Unread(t *testing.T) {
 	require.Len(t, unread[0].Items, 1)
 	assert.Equal(t, "2", unread[0].Items[0].GUID)
 }
+
+func TestRepository_MarkAll(t *testing.T) {
+	r := setupRepository(t)
+	feeds := []rss.Feed{
+		{Title: "Test Feed 1",
+			URL:   "https://test.com/sample.rss",
+			Items: []rss.Item{{GUID: "1", Content: "test item 1"}},
+		}}
+	err := r.Save(&(feeds[0]))
+	require.NoError(t, err)
+	err = r.MarkAll()
+	require.NoError(t, err)
+	fetched, err := r.Unread()
+	require.NoError(t, err)
+	require.Len(t, fetched, 1)
+	require.Len(t, fetched[0].Items, 0)
+}

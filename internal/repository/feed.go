@@ -44,6 +44,11 @@ func (r *FeedRepository) Unread() ([]rss.Feed, error) {
 	return feeds, err
 }
 
+func (r *FeedRepository) MarkAll() error {
+	result := r.db.Model(&rss.Item{}).Where("read = ?", false).Update("read", true)
+	return result.Error
+}
+
 func (r *FeedRepository) Close() error {
 	sqliteDb, err := r.db.DB()
 	if err != nil {
