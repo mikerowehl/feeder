@@ -8,9 +8,8 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"net/http"
 
-	"github.com/mikerowehl/feeder/internal/repository"
+	"github.com/mikerowehl/feeder/internal/feeder"
 	"github.com/spf13/cobra"
 )
 
@@ -21,25 +20,14 @@ var fetchCmd = &cobra.Command{
 	Long: `For the set of feeds in the local database this fetches the content from
 each of the URLs and updates the items associated with the feed.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		r, err := repository.NewFeedRepository(dbFile)
+		f, err := feeder.NewFeeder(dbFile)
 		if err != nil {
-			log.Fatalf("Error setting up database: %v", err)
+			log.Fatalf("Startup error: %v", err)
 		}
-		defer r.Close()
-		feeds, err := r.All()
+		defer f.Close()
+		err = f.Fetch()
 		if err != nil {
 			log.Fatalf("Error fetching feeds: %v", err)
-		}
-		client := &http.Client{}
-		for _, feed := range feeds {
-			err := feed.Fetch(client)
-			if err != nil {
-				log.Fatalf("Error fetching feed %s: %v", feed.URL, err)
-			}
-			err = r.Save(&feed)
-			if err != nil {
-				log.Fatalf("Error saving feed %s: %v", feed.URL, err)
-			}
 		}
 		fmt.Println("fetch finished")
 	},
