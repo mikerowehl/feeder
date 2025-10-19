@@ -7,12 +7,10 @@ package cmd
 
 import (
 	"fmt"
-	"html/template"
 	"log"
-	"os"
+	"time"
 
-	"github.com/mikerowehl/feeder/internal/output"
-	"github.com/mikerowehl/feeder/internal/repository"
+	"github.com/mikerowehl/feeder/internal/feeder"
 	"github.com/spf13/cobra"
 )
 
@@ -24,27 +22,15 @@ var readCmd = &cobra.Command{
 the feeds must have already been pulled with fetch) and writes out a single
 page in the current directory with a table of all the unread items.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		r, err := repository.NewFeedRepository(dbFile)
+		f, err := feeder.NewFeeder(dbFile)
 		if err != nil {
-			log.Fatalf("Error setting up database: %v", err)
+			log.Fatalf("Startup error: %v", err)
 		}
-		defer r.Close()
-		unread, err := r.Unread()
+		defer f.Close()
+		outfile := fmt.Sprintf("feeder-%s.html", time.Now().Format(time.DateOnly))
+		err = f.WriteUnread(outfile)
 		if err != nil {
-			log.Fatalf("Error fetching feeds: %v", err)
-		}
-		tmpl, err := template.ParseFiles("templates/feed.html")
-		if err != nil {
-			log.Fatalf("Error opening template: %v", err)
-		}
-		outFile, err := os.Create("feeder.html")
-		if err != nil {
-			log.Fatalf("Error writing to feeder.html: %v", err)
-		}
-		defer outFile.Close()
-		err = tmpl.Execute(outFile, output.SanitizeFeeds(unread))
-		if err != nil {
-			log.Fatalf("Error executing template: %v", err)
+			log.Fatalf("Error writing out unread: %v", err)
 		}
 		fmt.Println("read called")
 	},

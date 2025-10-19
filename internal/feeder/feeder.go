@@ -7,9 +7,12 @@ package feeder
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/mikerowehl/feeder/internal/output"
 	"github.com/mikerowehl/feeder/internal/repository"
 )
 
@@ -50,6 +53,27 @@ func (f Feeder) Fetch() error {
 			return fmt.Errorf("Error saving feed %s: %w", feed.URL, err)
 		}
 		log.Println("Fetched:", feed.URL)
+	}
+	return nil
+}
+
+func (f Feeder) WriteUnread(outFilename string) error {
+	unread, err := f.Db.Unread()
+	if err != nil {
+		return fmt.Errorf("Error fetching feeds: %w", err)
+	}
+	tmpl, err := template.ParseFiles("templates/feed.html")
+	if err != nil {
+		return fmt.Errorf("Error opening template: %v", err)
+	}
+	outFile, err := os.OpenFile(outFilename, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0644)
+	if err != nil {
+		return fmt.Errorf("Error opening output file %s: %w", outFilename, err)
+	}
+	defer outFile.Close()
+	err = tmpl.Execute(outFile, output.SanitizeFeeds(unread))
+	if err != nil {
+		return fmt.Errorf("Error executing template: %w", err)
 	}
 	return nil
 }
