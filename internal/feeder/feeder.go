@@ -41,7 +41,7 @@ func (f Feeder) Close() {
 func (f Feeder) Fetch() error {
 	feeds, err := f.Db.All()
 	if err != nil {
-		return fmt.Errorf("Error fetching feeds: %W", err)
+		return fmt.Errorf("Error fetching feeds: %w", err)
 	}
 	for _, feed := range feeds {
 		err := feed.Fetch(f.Client)
@@ -74,6 +74,17 @@ func (f Feeder) WriteUnread(outFilename string) error {
 	err = tmpl.Execute(outFile, output.SanitizeFeeds(unread))
 	if err != nil {
 		return fmt.Errorf("Error executing template: %w", err)
+	}
+	return nil
+}
+
+func (f Feeder) List() error {
+	feeds, err := f.Db.All()
+	if err != nil {
+		return fmt.Errorf("Error fetching feeds: %w", err)
+	}
+	for _, feed := range feeds {
+		fmt.Printf("%s - %s\n", feed.Title, feed.URL)
 	}
 	return nil
 }
