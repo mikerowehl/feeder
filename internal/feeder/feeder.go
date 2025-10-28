@@ -88,3 +88,7 @@ func (f Feeder) List() error {
 	}
 	return nil
 }
+
+func (f Feeder) MarkAll() error {
+	return f.Db.MarkAll()
+}
