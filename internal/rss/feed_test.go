@@ -45,7 +45,7 @@ func DateSortItems(items []rss.Item) {
 
 func TestFeed_EmptyFeed(t *testing.T) {
 	feed := rss.Feed{}
-	err := feed.Process(basicFeed)
+	err := feed.Process(basicFeed, 25)
 	require.NoError(t, err)
 	assert.Len(t, feed.Items, 2)
 }
@@ -53,7 +53,7 @@ func TestFeed_EmptyFeed(t *testing.T) {
 func TestFeed_FetchSimple(t *testing.T) {
 	client := mock.NewMockClient(basicFeed)
 	feed := rss.Feed{URL: "https://testing.com/dummyfeed.rss"}
-	err := feed.Fetch(client)
+	err := feed.Fetch(client, 25)
 	require.NoError(t, err)
 	assert.Len(t, feed.Items, 2)
 	DateSortItems(feed.Items)
