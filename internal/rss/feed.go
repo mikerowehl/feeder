@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/mmcdole/gofeed"
 	"gorm.io/gorm"
@@ -24,12 +25,13 @@ type Feed struct {
 
 type Item struct {
 	gorm.Model
-	FeedID  uint
-	Title   string
-	Link    string
-	Content string
-	GUID    string `gorm:"unique"`
-	Read    bool
+	FeedID    uint
+	Title     string
+	Link      string
+	Content   string
+	GUID      string `gorm:"unique"`
+	Published time.Time
+	Read      bool
 }
 
 // Makes the web request to fetch the content of the feed, setting headers and
@@ -95,12 +97,19 @@ func ParsedToItem(parsed *gofeed.Item) Item {
 	if content == "" {
 		content = parsed.Description
 	}
+	var published time.Time
+	if parsed.PublishedParsed != nil {
+		published = *parsed.PublishedParsed
+	} else {
+		published = time.Now()
+	}
 	return Item{
-		Title:   parsed.Title,
-		Link:    parsed.Link,
-		Content: content,
-		GUID:    guid,
-		Read:    false,
+		Title:     parsed.Title,
+		Link:      parsed.Link,
+		Content:   content,
+		GUID:      guid,
+		Published: published,
+		Read:      false,
 	}
 }
 

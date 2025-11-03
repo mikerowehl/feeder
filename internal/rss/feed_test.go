@@ -6,6 +6,7 @@ See LICENSE in the project root for full license information.
 package rss_test
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/mikerowehl/feeder/internal/rss"
@@ -25,14 +26,22 @@ var basicFeed = `<?xml version="1.0" encoding="UTF-8" ?>
       <title>First Post</title>
       <link>https://example.com/post1</link>
       <description>This is the first post in the feed.</description>
+	  <pubDate>Mon, 03 Nov 2025 12:00:00 GMT</pubDate>
     </item>
     <item>
       <title>Second Post</title>
       <link>https://example.com/post2</link>
       <description>This is the second post in the feed.</description>
+	  <pubDate>Sun, 02 Nov 2025 12:00:00 GMT</pubDate>
     </item>
   </channel>
 </rss>`
+
+func DateSortItems(items []rss.Item) {
+	sort.Slice(items, func(a, b int) bool {
+		return items[a].Published.Before(items[b].Published)
+	})
+}
 
 func TestFeed_EmptyFeed(t *testing.T) {
 	feed := rss.Feed{}
@@ -47,4 +56,7 @@ func TestFeed_FetchSimple(t *testing.T) {
 	err := feed.Fetch(client)
 	require.NoError(t, err)
 	assert.Len(t, feed.Items, 2)
+	DateSortItems(feed.Items)
+	firstItem := feed.Items[0]
+	require.Equal(t, "Second Post", firstItem.Title)
 }

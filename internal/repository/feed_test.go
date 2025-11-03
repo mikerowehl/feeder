@@ -7,6 +7,7 @@ package repository_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -71,8 +72,10 @@ func TestRepository_FeedWithItems(t *testing.T) {
 	r := setupRepository(t)
 	feeds := []rss.Feed{
 		{Title: "Test Feed 1",
-			URL:   "https://test.com/sample.rss",
-			Items: []rss.Item{{GUID: "1", Content: "test item 1"}},
+			URL: "https://test.com/sample.rss",
+			Items: []rss.Item{
+				{GUID: "1", Content: "test item 1", Published: time.Now()},
+			},
 		}}
 	err := r.Save(&(feeds[0]))
 	require.NoError(t, err)
@@ -89,23 +92,27 @@ func TestRepository_MultipleFeeds(t *testing.T) {
 	feeds := []rss.Feed{
 		{Title: "Feed 1", URL: "https://example.com/feed1.rss", Items: []rss.Item{
 			{Title: "Feed 1 Item 1",
-				Link:    "https://feed1.com/i1",
-				Content: "content for 1/1",
-				GUID:    "guid1"},
+				Link:      "https://feed1.com/i1",
+				Content:   "content for 1/1",
+				GUID:      "guid1",
+				Published: time.Now().Add(time.Duration(-48) * time.Hour)},
 			{Title: "Feed 1 Item 2",
-				Link:    "https://feed1.com/i2",
-				Content: "content for 1/2",
-				GUID:    "guid2"},
+				Link:      "https://feed1.com/i2",
+				Content:   "content for 1/2",
+				GUID:      "guid2",
+				Published: time.Now().Add(time.Duration(-24) * time.Hour)},
 		}},
 		{Title: "Feed 2", URL: "https://example.com/feed2.rss", Items: []rss.Item{
 			{Title: "Feed 2 Item 1",
-				Link:    "https://feed2.com/i1",
-				Content: "content for 2/1",
-				GUID:    "guid10"},
+				Link:      "https://feed2.com/i1",
+				Content:   "content for 2/1",
+				GUID:      "guid10",
+				Published: time.Now().Add(time.Duration(-2) * time.Hour)},
 			{Title: "Feed 2 Item 2",
-				Link:    "https://feed2.com/i2",
-				Content: "content for 2/2",
-				GUID:    "guid11"},
+				Link:      "https://feed2.com/i2",
+				Content:   "content for 2/2",
+				GUID:      "guid11",
+				Published: time.Now().Add(time.Duration(-1) * time.Hour)},
 		}},
 	}
 	for _, feed := range feeds {
@@ -136,16 +143,34 @@ func TestRepository_Unread(t *testing.T) {
 	err := r.Save(&testFeed)
 	require.NoError(t, err)
 	feedId := testFeed.ID
-	testItem1 := rss.Item{FeedID: feedId, GUID: "1", Content: "test item 1", Read: true}
-	testItem2 := rss.Item{FeedID: feedId, GUID: "2", Content: "test item 2", Read: false}
-	testFeed.Items = append(testFeed.Items, testItem1, testItem2)
+	testItem1 := rss.Item{
+		FeedID:    feedId,
+		GUID:      "1",
+		Content:   "test item 1",
+		Read:      true,
+		Published: time.Now().Add(time.Duration(-3) * time.Hour)}
+	testItem2 := rss.Item{
+		FeedID:    feedId,
+		GUID:      "2",
+		Content:   "test item 2",
+		Read:      false,
+		Published: time.Now().Add(time.Duration(-2) * time.Hour)}
+	testItem3 := rss.Item{
+		FeedID:    feedId,
+		GUID:      "3",
+		Content:   "test item 3",
+		Read:      false,
+		Published: time.Now().Add(time.Duration(-1) * time.Hour)}
+	testFeed.Items = append(testFeed.Items, testItem1, testItem2, testItem3)
 	err = r.Save(&testFeed)
 	require.NoError(t, err)
 	unread, err := r.Unread()
 	require.NoError(t, err)
 	require.Len(t, unread, 1)
-	require.Len(t, unread[0].Items, 1)
-	assert.Equal(t, "2", unread[0].Items[0].GUID)
+	require.Len(t, unread[0].Items, 2)
+	// Test the ordering, reverse chronological
+	assert.Equal(t, "3", unread[0].Items[0].GUID)
+	assert.Equal(t, "2", unread[0].Items[1].GUID)
 }
 
 func TestRepository_MarkAll(t *testing.T) {

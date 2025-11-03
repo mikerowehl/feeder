@@ -40,7 +40,11 @@ func (r *FeedRepository) All() ([]rss.Feed, error) {
 
 func (r *FeedRepository) Unread() ([]rss.Feed, error) {
 	var feeds []rss.Feed
-	err := r.db.Preload("Items", "read = ?", false).Find(&feeds).Error
+	err := r.db.Preload("Items", func(db *gorm.DB) *gorm.DB {
+		return db.
+			Where("read = ?", false).
+			Order("published DESC")
+	}).Find(&feeds).Error
 	return feeds, err
 }
 
