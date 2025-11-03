@@ -21,6 +21,8 @@ type Feeder struct {
 	Client *http.Client
 }
 
+const maxItems = 100
+
 func NewFeeder(dbFile string) (Feeder, error) {
 	f := Feeder{}
 	r, err := repository.NewFeedRepository(dbFile)
@@ -44,7 +46,7 @@ func (f Feeder) Fetch() error {
 		return fmt.Errorf("Error fetching feeds: %w", err)
 	}
 	for _, feed := range feeds {
-		err := feed.Fetch(f.Client)
+		err := feed.Fetch(f.Client, maxItems)
 		if err != nil {
 			return fmt.Errorf("Error fetching feed %s: %w", feed.URL, err)
 		}

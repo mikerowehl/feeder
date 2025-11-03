@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"slices"
+	"sort"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -113,25 +114,30 @@ func ParsedToItem(parsed *gofeed.Item) Item {
 	}
 }
 
-func (feed *Feed) Fetch(client *http.Client) error {
+func (feed *Feed) Fetch(client *http.Client, maxItems int) error {
 	content, err := FetchFeedContent(feed.URL, client)
 	if err != nil {
 		return err
 	}
 
-	return feed.Process(content)
+	return feed.Process(content, maxItems)
 }
 
 // Process the current content of the feed and parse into items. If there are
 // already items in the list attached to the feed we only create new items for
 // the entries we don't have. New items are populated with Read set to false.
-func (feed *Feed) Process(content string) error {
+func (feed *Feed) Process(content string, maxItems int) error {
 	fp := gofeed.NewParser()
 	parsed, err := fp.ParseString(content)
 	if err != nil {
 		return err
 	}
-	for _, parsedItem := range parsed.Items {
+	useItems := parsed.Items
+	if len(useItems) > maxItems {
+		sort.Sort(parsed)
+		useItems = parsed.Items[len(parsed.Items)-maxItems:]
+	}
+	for _, parsedItem := range useItems {
 		item := ParsedToItem(parsedItem)
 		found := slices.IndexFunc(feed.Items, func(search Item) bool {
 			return search.GUID == item.GUID
