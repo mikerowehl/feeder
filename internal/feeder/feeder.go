@@ -6,6 +6,7 @@ See LICENSE in the project root for full license information.
 package feeder
 
 import (
+	_ "embed"
 	"fmt"
 	"html/template"
 	"log"
@@ -20,6 +21,9 @@ type Feeder struct {
 	Db     *repository.FeedRepository
 	Client *http.Client
 }
+
+//go:embed templates/feed.html
+var feedTemplate string
 
 const maxItems = 100
 
@@ -64,7 +68,7 @@ func (f Feeder) WriteUnread(outFilename string) error {
 	if err != nil {
 		return fmt.Errorf("Error fetching feeds: %w", err)
 	}
-	tmpl, err := template.ParseFiles("templates/feed.html")
+	tmpl, err := template.New("feed").Parse(feedTemplate)
 	if err != nil {
 		return fmt.Errorf("Error opening template: %v", err)
 	}
