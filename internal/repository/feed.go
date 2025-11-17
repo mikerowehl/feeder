@@ -58,6 +58,5 @@ func (r *FeedRepository) Close() error {
 	if err != nil {
 		return err
 	}
-	sqliteDb.Close()
-	return nil
+	return sqliteDb.Close()
 }
