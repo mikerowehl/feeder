@@ -7,10 +7,8 @@ package cmd
 
 import (
 	"fmt"
-	"net/http"
 
-	"github.com/mikerowehl/feeder/internal/repository"
-	"github.com/mikerowehl/feeder/internal/rss"
+	"github.com/mikerowehl/feeder/internal/feeder"
 	"github.com/spf13/cobra"
 )
 
@@ -27,22 +25,12 @@ ex: feeder add "https://rowehl.com/feed.xml"`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		feedUrl := args[0]
-		fmt.Println("Adding feed:", feedUrl)
-		r, err := repository.NewFeedRepository(dbFile)
+		f, err := feeder.NewFeeder(dbFile)
 		if err != nil {
-			return fmt.Errorf("error setting up database: %w", err)
+			return fmt.Errorf("startup error: %w", err)
 		}
-		defer r.Close()
-		client := &http.Client{}
-		feed, err := rss.FeedFromURL(feedUrl, client)
-		if err != nil {
-			return fmt.Errorf("error creating feed from url: %w", err)
-		}
-		err = r.Save(&feed)
-		if err != nil {
-			return fmt.Errorf("error adding feed: %w", err)
-		}
-		return nil
+		defer f.Close()
+		return f.Add(feedUrl)
 	},
 }
 

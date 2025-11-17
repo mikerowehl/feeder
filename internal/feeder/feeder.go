@@ -16,6 +16,7 @@ import (
 
 	"github.com/mikerowehl/feeder/internal/output"
 	"github.com/mikerowehl/feeder/internal/repository"
+	"github.com/mikerowehl/feeder/internal/rss"
 )
 
 type Feeder struct {
@@ -43,6 +44,18 @@ func (f *Feeder) Close() {
 	if f.Db != nil {
 		f.Db.Close()
 	}
+}
+
+func (f *Feeder) Add(url string) error {
+	feed, err := rss.FeedFromURL(url, f.Client)
+	if err != nil {
+		return fmt.Errorf("error creating feed from url %s: %w", url, err)
+	}
+	err = f.Db.Save(&feed)
+	if err != nil {
+		return fmt.Errorf("error adding feed: %w", err)
+	}
+	return nil
 }
 
 func (f *Feeder) Fetch() error {
