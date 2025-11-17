@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/mikerowehl/feeder/internal/feeder"
 	"github.com/spf13/cobra"
@@ -23,17 +22,18 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		f, err := feeder.NewFeeder(dbFile)
 		if err != nil {
-			log.Fatalf("Startup error: %v", err)
+			return fmt.Errorf("Startup error: %w", err)
 		}
 		defer f.Close()
 		err = f.MarkAll()
 		if err != nil {
-			log.Fatalf("Error marking feeds: %v", err)
+			return fmt.Errorf("Error marking feeds: %w", err)
 		}
 		fmt.Println("mark called")
+		return nil
 	},
 }
 

@@ -6,7 +6,7 @@ See LICENSE in the project root for full license information.
 package cmd
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/mikerowehl/feeder/internal/feeder"
 	"github.com/spf13/cobra"
@@ -17,16 +17,17 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all the active feeds",
 	Long:  `Outputs the title and URL of each feed from the database onto standard output.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		f, err := feeder.NewFeeder(dbFile)
 		if err != nil {
-			log.Fatalf("Startup error: %v", err)
+			return fmt.Errorf("startup error: %w", err)
 		}
 		defer f.Close()
 		err = f.List()
 		if err != nil {
-			log.Fatalf("Error fetching feeds: %v", err)
+			return fmt.Errorf("error fetching feeds: %w", err)
 		}
+		return nil
 	},
 }
 

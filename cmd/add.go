@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/mikerowehl/feeder/internal/repository"
@@ -26,23 +25,24 @@ contents of the URL and what environment you're running in.
 
 ex: feeder add "https://rowehl.com/feed.xml"`,
 	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		feedUrl := args[0]
 		fmt.Println("Adding feed:", feedUrl)
 		r, err := repository.NewFeedRepository(dbFile)
 		if err != nil {
-			log.Fatalf("Error setting up database: %v", err)
+			return fmt.Errorf("error setting up database: %w", err)
 		}
 		defer r.Close()
 		client := &http.Client{}
 		feed, err := rss.FeedFromURL(feedUrl, client)
 		if err != nil {
-			log.Fatalf("Error creating feed from url: %v", err)
+			return fmt.Errorf("error creating feed from url: %w", err)
 		}
 		err = r.Save(&feed)
 		if err != nil {
-			log.Fatalf("Error adding feed: %v", err)
+			return fmt.Errorf("error adding feed: %w", err)
 		}
+		return nil
 	},
 }
 

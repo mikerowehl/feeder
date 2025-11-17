@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/mikerowehl/feeder/internal/feeder"
@@ -21,18 +20,19 @@ var readCmd = &cobra.Command{
 	Long: `Searches through the local database for any items not yet marked as read (so
 the feeds must have already been pulled with fetch) and writes out a single
 page in the current directory with a table of all the unread items.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		f, err := feeder.NewFeeder(dbFile)
 		if err != nil {
-			log.Fatalf("Startup error: %v", err)
+			return fmt.Errorf("startup error: %w", err)
 		}
 		defer f.Close()
 		outfile := fmt.Sprintf("feeder-%s.html", time.Now().Format(time.DateOnly))
 		err = f.WriteUnread(outfile)
 		if err != nil {
-			log.Fatalf("Error writing out unread: %v", err)
+			return fmt.Errorf("error writing out unread: %w", err)
 		}
 		fmt.Println("read called")
+		return nil
 	},
 }
 

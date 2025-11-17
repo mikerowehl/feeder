@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/mikerowehl/feeder/internal/feeder"
 	"github.com/spf13/cobra"
@@ -19,17 +18,18 @@ var fetchCmd = &cobra.Command{
 	Short: "Fetch the content from feeds and update the local set of items",
 	Long: `For the set of feeds in the local database this fetches the content from
 each of the URLs and updates the items associated with the feed.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		f, err := feeder.NewFeeder(dbFile)
 		if err != nil {
-			log.Fatalf("Startup error: %v", err)
+			return fmt.Errorf("startup error: %w", err)
 		}
 		defer f.Close()
 		err = f.Fetch()
 		if err != nil {
-			log.Fatalf("Error fetching feeds: %v", err)
+			return fmt.Errorf("error fetching feeds: %w", err)
 		}
 		fmt.Println("fetch finished")
+		return nil
 	},
 }
 

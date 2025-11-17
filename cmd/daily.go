@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/mikerowehl/feeder/internal/feeder"
@@ -20,25 +19,26 @@ var dailyCmd = &cobra.Command{
 	Short: "Fetches all the feeds, makes a page of posts, and marks all read",
 	Long: `Just a convenience wrapper around fetch, read, and mark. Just checks at each
 operation and only goes to the next if everything is okay.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		f, err := feeder.NewFeeder(dbFile)
 		if err != nil {
-			log.Fatalf("Startup error: %v", err)
+			return fmt.Errorf("startup error: %w", err)
 		}
 		defer f.Close()
 		err = f.Fetch()
 		if err != nil {
-			log.Fatalf("Error fetching feeds: %v", err)
+			return fmt.Errorf("error fetching feeds: %w", err)
 		}
 		outfile := fmt.Sprintf("feeder-%s.html", time.Now().Format(time.DateOnly))
 		err = f.WriteUnread(outfile)
 		if err != nil {
-			log.Fatalf("Error writing out unread: %v", err)
+			return fmt.Errorf("error writing out unread: %w", err)
 		}
 		err = f.MarkAll()
 		if err != nil {
-			log.Fatalf("Error marking feeds: %v", err)
+			return fmt.Errorf("error marking feeds: %w", err)
 		}
+		return nil
 	},
 }
 
