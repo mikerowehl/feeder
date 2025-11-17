@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/mikerowehl/feeder/internal/output"
 	"github.com/mikerowehl/feeder/internal/repository"
@@ -27,24 +28,24 @@ var feedTemplate string
 
 const maxItems = 100
 
-func NewFeeder(dbFile string) (Feeder, error) {
-	f := Feeder{}
+func NewFeeder(dbFile string) (*Feeder, error) {
+	f := &Feeder{}
 	r, err := repository.NewFeedRepository(dbFile)
 	if err != nil {
 		return f, err
 	}
 	f.Db = r
-	f.Client = &http.Client{}
+	f.Client = &http.Client{Timeout: 30 * time.Second}
 	return f, nil
 }
 
-func (f Feeder) Close() {
+func (f *Feeder) Close() {
 	if f.Db != nil {
 		f.Db.Close()
 	}
 }
 
-func (f Feeder) Fetch() error {
+func (f *Feeder) Fetch() error {
 	feeds, err := f.Db.All()
 	if err != nil {
 		return fmt.Errorf("Error fetching feeds: %w", err)
@@ -63,7 +64,7 @@ func (f Feeder) Fetch() error {
 	return nil
 }
 
-func (f Feeder) WriteUnread(outFilename string) error {
+func (f *Feeder) WriteUnread(outFilename string) error {
 	unread, err := f.Db.Unread()
 	if err != nil {
 		return fmt.Errorf("Error fetching feeds: %w", err)
@@ -84,7 +85,7 @@ func (f Feeder) WriteUnread(outFilename string) error {
 	return nil
 }
 
-func (f Feeder) List() error {
+func (f *Feeder) List() error {
 	feeds, err := f.Db.All()
 	if err != nil {
 		return fmt.Errorf("Error fetching feeds: %w", err)
@@ -95,6 +96,6 @@ func (f Feeder) List() error {
 	return nil
 }
 
-func (f Feeder) MarkAll() error {
+func (f *Feeder) MarkAll() error {
 	return f.Db.MarkAll()
 }
