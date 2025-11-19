@@ -63,12 +63,13 @@ func (f *Feeder) Fetch() error {
 	if err != nil {
 		return fmt.Errorf("Error fetching feeds: %w", err)
 	}
-	for _, feed := range feeds {
+	for i := range feeds {
+		feed := &feeds[i]
 		err := feed.Fetch(f.Client, maxItems)
 		if err != nil {
 			return fmt.Errorf("Error fetching feed %s: %w", feed.URL, err)
 		}
-		err = f.Db.Save(&feed)
+		err = f.Db.Save(feed)
 		if err != nil {
 			return fmt.Errorf("Error saving feed %s: %w", feed.URL, err)
 		}
