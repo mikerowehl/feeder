@@ -21,13 +21,9 @@ var readCmd = &cobra.Command{
 the feeds must have already been pulled with fetch) and writes out a single
 page in the current directory with a table of all the unread items.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		f, err := feeder.NewFeeder(dbFile)
-		if err != nil {
-			return fmt.Errorf("startup error: %w", err)
-		}
-		defer f.Close()
+		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
 		outfile := fmt.Sprintf("feeder-%s.html", time.Now().Format(time.DateOnly))
-		err = f.WriteUnread(outfile)
+		err := f.WriteUnread(outfile)
 		if err != nil {
 			return fmt.Errorf("error writing out unread: %w", err)
 		}

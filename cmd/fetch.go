@@ -19,12 +19,8 @@ var fetchCmd = &cobra.Command{
 	Long: `For the set of feeds in the local database this fetches the content from
 each of the URLs and updates the items associated with the feed.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		f, err := feeder.NewFeeder(dbFile)
-		if err != nil {
-			return fmt.Errorf("startup error: %w", err)
-		}
-		defer f.Close()
-		err = f.Fetch()
+		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
+		err := f.Fetch()
 		if err != nil {
 			return fmt.Errorf("error fetching feeds: %w", err)
 		}

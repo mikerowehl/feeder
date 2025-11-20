@@ -6,8 +6,6 @@ See LICENSE in the project root for full license information.
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/mikerowehl/feeder/internal/feeder"
 	"github.com/spf13/cobra"
 )
@@ -25,11 +23,7 @@ ex: feeder add "https://rowehl.com/feed.xml"`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		feedUrl := args[0]
-		f, err := feeder.NewFeeder(dbFile)
-		if err != nil {
-			return fmt.Errorf("startup error: %w", err)
-		}
-		defer f.Close()
+		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
 		return f.Add(feedUrl)
 	},
 }

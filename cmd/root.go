@@ -6,10 +6,15 @@ See LICENSE in the project root for full license information.
 package cmd
 
 import (
+	"context"
+	"fmt"
 	"os"
 
+	"github.com/mikerowehl/feeder/internal/feeder"
 	"github.com/spf13/cobra"
 )
+
+const feederKey = "feeder"
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -17,6 +22,36 @@ var rootCmd = &cobra.Command{
 	Short: "A basic command line syndicated feed processor",
 	Long: `Use the add command to build up a list of feeds to process. The fetch
 command then pulls down the feeds and merges them into a summary page.`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		dbFile, err := cmd.Flags().GetString("dbFile")
+		if err != nil {
+			return err
+		}
+
+		f, err := feeder.NewFeeder(dbFile)
+		if err != nil {
+			return err
+		}
+
+		ctx := context.WithValue(cmd.Context(), feederKey, f)
+		cmd.SetContext(ctx)
+
+		return nil
+	},
+	PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+		fVal := cmd.Context().Value(feederKey)
+		if fVal == nil {
+			return nil
+		}
+
+		f, ok := fVal.(*feeder.Feeder)
+		if !ok {
+			return fmt.Errorf("%s key has wrong type", feederKey)
+		}
+		f.Close()
+
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			cmd.Help()
@@ -33,9 +68,7 @@ func Execute() {
 	}
 }
 
-var dbFile string
-
 func init() {
-	rootCmd.PersistentFlags().StringVar(&dbFile, "dbFile", "feeder.db",
+	rootCmd.PersistentFlags().String("dbFile", "feeder.db",
 		"database file name (default feeder.db)")
 }

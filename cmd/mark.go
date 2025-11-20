@@ -23,12 +23,8 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		f, err := feeder.NewFeeder(dbFile)
-		if err != nil {
-			return fmt.Errorf("Startup error: %w", err)
-		}
-		defer f.Close()
-		err = f.MarkAll()
+		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
+		err := f.MarkAll()
 		if err != nil {
 			return fmt.Errorf("Error marking feeds: %w", err)
 		}

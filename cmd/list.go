@@ -18,12 +18,8 @@ var listCmd = &cobra.Command{
 	Short: "List all the active feeds",
 	Long:  `Outputs the title and URL of each feed from the database onto standard output.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		f, err := feeder.NewFeeder(dbFile)
-		if err != nil {
-			return fmt.Errorf("startup error: %w", err)
-		}
-		defer f.Close()
-		err = f.List()
+		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
+		err := f.List()
 		if err != nil {
 			return fmt.Errorf("error fetching feeds: %w", err)
 		}

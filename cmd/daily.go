@@ -20,12 +20,8 @@ var dailyCmd = &cobra.Command{
 	Long: `Just a convenience wrapper around fetch, read, and mark. Just checks at each
 operation and only goes to the next if everything is okay.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		f, err := feeder.NewFeeder(dbFile)
-		if err != nil {
-			return fmt.Errorf("startup error: %w", err)
-		}
-		defer f.Close()
-		err = f.Fetch()
+		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
+		err := f.Fetch()
 		if err != nil {
 			return fmt.Errorf("error fetching feeds: %w", err)
 		}
