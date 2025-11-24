@@ -105,7 +105,7 @@ func (f *Feeder) List() error {
 		return fmt.Errorf("Error fetching feeds: %w", err)
 	}
 	for _, feed := range feeds {
-		fmt.Printf("%d: %s - %s\n", feed.ID, feed.Title, feed.URL)
+		fmt.Printf("%d: %s (%s)\n", feed.ID, feed.Title, feed.URL)
 	}
 	return nil
 }

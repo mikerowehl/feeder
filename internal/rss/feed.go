@@ -21,7 +21,7 @@ type Feed struct {
 	gorm.Model
 	URL   string `gorm:"unique"`
 	Title string
-	Items []Item
+	Items []Item `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 type Item struct {

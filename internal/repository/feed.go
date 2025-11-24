@@ -9,6 +9,7 @@ import (
 	"github.com/mikerowehl/feeder/internal/rss"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type FeedRepository struct {
@@ -20,6 +21,7 @@ func NewFeedRepository(filename string) (*FeedRepository, error) {
 	if err != nil {
 		return nil, err
 	}
+	db.Exec("PRAGMA foreign_keys = ON")
 	db.AutoMigrate(&rss.Feed{}, &rss.Item{})
 	return &FeedRepository{db: db}, nil
 }
@@ -32,10 +34,21 @@ func (r *FeedRepository) Save(feed *rss.Feed) error {
 	return nil
 }
 
+func (r *FeedRepository) Delete(id uint) error {
+	err := r.db.Unscoped().Select(clause.Associations).Delete(&rss.Feed{}, id).Error
+	return err
+}
+
 func (r *FeedRepository) All() ([]rss.Feed, error) {
 	var feeds []rss.Feed
 	err := r.db.Preload("Items").Find(&feeds).Error
 	return feeds, err
+}
+
+func (r *FeedRepository) AllItems() ([]rss.Item, error) {
+	var items []rss.Item
+	err := r.db.Find(&items).Error
+	return items, err
 }
 
 func (r *FeedRepository) Unread() ([]rss.Feed, error) {

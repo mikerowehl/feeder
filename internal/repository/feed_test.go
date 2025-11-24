@@ -136,6 +136,50 @@ func TestRepository_MultipleFeeds(t *testing.T) {
 	}
 }
 
+func TestRepository_Delete(t *testing.T) {
+	r := setupRepository(t)
+	feeds := []rss.Feed{
+		{Title: "Feed 1", URL: "https://example.com/feed1.rss", Items: []rss.Item{
+			{Title: "Feed 1 Item 1",
+				Link:      "https://feed1.com/i1",
+				Content:   "content for 1/1",
+				GUID:      "guid1",
+				Published: time.Now().Add(time.Duration(-48) * time.Hour)},
+			{Title: "Feed 1 Item 2",
+				Link:      "https://feed1.com/i2",
+				Content:   "content for 1/2",
+				GUID:      "guid2",
+				Published: time.Now().Add(time.Duration(-24) * time.Hour)},
+		}},
+		{Title: "Feed 2", URL: "https://example.com/feed2.rss", Items: []rss.Item{
+			{Title: "Feed 2 Item 1",
+				Link:      "https://feed2.com/i1",
+				Content:   "content for 2/1",
+				GUID:      "guid10",
+				Published: time.Now().Add(time.Duration(-2) * time.Hour)},
+			{Title: "Feed 2 Item 2",
+				Link:      "https://feed2.com/i2",
+				Content:   "content for 2/2",
+				GUID:      "guid11",
+				Published: time.Now().Add(time.Duration(-1) * time.Hour)},
+		}},
+	}
+	for i := range feeds {
+		err := r.Save(&feeds[i])
+		require.NoError(t, err)
+	}
+	err := r.Delete(feeds[0].ID)
+	require.NoError(t, err)
+	fetched, err := r.All()
+	require.NoError(t, err)
+	require.Len(t, fetched, 1)
+	require.Equal(t, fetched[0].Title, "Feed 2")
+	require.Len(t, fetched[0].Items, 2)
+	fetchedItems, err := r.AllItems()
+	require.NoError(t, err)
+	require.Len(t, fetchedItems, 2)
+}
+
 func TestRepository_Unread(t *testing.T) {
 	r := setupRepository(t)
 	feedUrl := "https://test.com/sample.rss"
