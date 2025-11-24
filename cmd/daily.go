@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/mikerowehl/feeder/internal/feeder"
 	"github.com/spf13/cobra"
@@ -25,8 +24,8 @@ operation and only goes to the next if everything is okay.`,
 		if err != nil {
 			return fmt.Errorf("error fetching feeds: %w", err)
 		}
-		outfile := fmt.Sprintf("feeder-%s.html", time.Now().Format(time.DateOnly))
-		err = f.WriteUnread(outfile)
+		outFile := feeder.TodayFile()
+		err = f.WriteUnread(outFile)
 		if err != nil {
 			return fmt.Errorf("error writing out unread: %w", err)
 		}
@@ -34,7 +33,7 @@ operation and only goes to the next if everything is okay.`,
 		if err != nil {
 			return fmt.Errorf("error marking feeds: %w", err)
 		}
-		return nil
+		return f.Open(outFile)
 	},
 }
 

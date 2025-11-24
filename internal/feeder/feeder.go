@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"time"
 
 	"github.com/mikerowehl/feeder/internal/output"
@@ -38,6 +39,10 @@ func NewFeeder(dbFile string) (*Feeder, error) {
 	f.Db = r
 	f.Client = &http.Client{Timeout: 30 * time.Second}
 	return f, nil
+}
+
+func TodayFile() string {
+	return fmt.Sprintf("feeder-%s.html", time.Now().Format(time.DateOnly))
 }
 
 func (f *Feeder) Close() {
@@ -112,4 +117,18 @@ func (f *Feeder) List() error {
 
 func (f *Feeder) MarkAll() error {
 	return f.Db.MarkAll()
+}
+
+func (f *Feeder) Open(filename string) error {
+	openPath, err := exec.LookPath("open")
+	if err == nil {
+		cmd := exec.Command(openPath, filename)
+		return cmd.Run()
+	}
+	xdgOpenPath, err := exec.LookPath("xdg-open")
+	if err == nil {
+		cmd := exec.Command(xdgOpenPath, filename)
+		return cmd.Run()
+	}
+	return fmt.Errorf("unable find suitable open command")
 }
