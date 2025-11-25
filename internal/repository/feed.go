@@ -45,6 +45,12 @@ func (r *FeedRepository) All() ([]rss.Feed, error) {
 	return feeds, err
 }
 
+func (r *FeedRepository) AllFeeds() ([]rss.Feed, error) {
+	var feeds []rss.Feed
+	err := r.db.Find(&feeds).Error
+	return feeds, err
+}
+
 func (r *FeedRepository) AllItems() ([]rss.Item, error) {
 	var items []rss.Item
 	err := r.db.Find(&items).Error

@@ -110,11 +110,12 @@ func (f *Feeder) WriteUnread(outFilename string) error {
 }
 
 func (f *Feeder) List() error {
-	feeds, err := f.Db.All()
+	feeds, err := f.Db.AllFeeds()
 	if err != nil {
 		return fmt.Errorf("Error fetching feeds: %w", err)
 	}
-	for _, feed := range feeds {
+	for i := range feeds {
+		feed := &feeds[i]
 		fmt.Printf("%d: %s (%s)\n", feed.ID, feed.Title, feed.URL)
 	}
 	return nil
@@ -136,4 +137,16 @@ func (f *Feeder) Open(filename string) error {
 		return cmd.Run()
 	}
 	return fmt.Errorf("unable find suitable open command")
+}
+
+func (f *Feeder) Export() error {
+	feeds, err := f.Db.AllFeeds()
+	if err != nil {
+		return fmt.Errorf("Error fetching feeds: %w", err)
+	}
+	for i := range feeds {
+		feed := &feeds[i]
+		fmt.Printf("%s\n", feed.URL)
+	}
+	return nil
 }
