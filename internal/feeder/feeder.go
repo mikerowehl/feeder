@@ -28,6 +28,7 @@ type Feeder struct {
 //go:embed templates/feed.html
 var feedTemplate string
 
+const appName = "feeder"
 const maxItems = 100
 
 func NewFeeder(dbFile string) (*Feeder, error) {
@@ -42,7 +43,7 @@ func NewFeeder(dbFile string) (*Feeder, error) {
 }
 
 func TodayFile() string {
-	return fmt.Sprintf("feeder-%s.html", time.Now().Format(time.DateOnly))
+	return fmt.Sprintf("%s-%s.html", appName, time.Now().Format(time.DateOnly))
 }
 
 func (f *Feeder) Close() {
