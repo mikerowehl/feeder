@@ -63,6 +63,10 @@ func (f *Feeder) Add(url string) error {
 	return nil
 }
 
+func (f *Feeder) Delete(id uint) error {
+	return f.Db.Delete(id)
+}
+
 func (f *Feeder) Fetch() error {
 	feeds, err := f.Db.All()
 	if err != nil {
