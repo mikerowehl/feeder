@@ -10,6 +10,9 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	_ "modernc.org/libc"
+	_ "modernc.org/sqlite"
 )
 
 type FeedRepository struct {
@@ -17,7 +20,10 @@ type FeedRepository struct {
 }
 
 func NewFeedRepository(filename string) (*FeedRepository, error) {
-	db, err := gorm.Open(sqlite.Open(filename), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Dialector{
+		DriverName: "sqlite",
+		DSN:        filename,
+	}, &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
