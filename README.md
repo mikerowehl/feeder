@@ -1,10 +1,8 @@
-# feeder
-
-[![Go](https://github.com/mikerowehl/feeder/actions/workflows/go.yml/badge.svg)](https://github.com/mikerowehl/feeder/actions/workflows/go.yml)
+<img src="gopher_bowl.png" width="200" alt="Go Gopher with a bowl of RSS feed icons">
 
 # Feeder - command line feed tool
 
-<img src="gopher_bowl.png" width="200" alt="Go Gopher with a bowl of RSS feed icons">
+[![Go](https://github.com/mikerowehl/feeder/actions/workflows/go.yml/badge.svg)](https://github.com/mikerowehl/feeder/actions/workflows/go.yml)
 
 `feeder` is a simple command line tool for tracking, fetching, and reading syndicated content.
 It's built on top of the fantastic [gofeed package](https://github.com/mmcdole/gofeed) so it supports
@@ -20,17 +18,12 @@ Add a few feeds to the database:
 ```
 feeder add https://rowehl.com/feed.xml
 feeder add https://pluralistic.net/feed/
+feeder add https://hackaday.com/blog/feed/
 ```
 
-Pull down the content:
+The daily command fetches the most recent feed content, writes any unread items into an HTML file
+in the current directory, marks all the items as read in the database, and attempts to run a
+command that will open the generated file in the default browser.
 
-```feeder fetch```
+```feeder daily```
 
-Make a page with links to each of the items from the feeds. Right now the read command just outputs
-to a file named feeder-[currentdate].html in the current directory.
-
-```feeder read```
-
-Mark everything currently in the database as read.
-
-```feeder mark```
