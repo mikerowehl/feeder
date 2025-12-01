@@ -6,6 +6,7 @@ See LICENSE in the project root for full license information.
 package feeder
 
 import (
+	"bufio"
 	_ "embed"
 	"fmt"
 	"html/template"
@@ -13,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/mikerowehl/feeder/internal/output"
@@ -149,4 +151,18 @@ func (f *Feeder) Export() error {
 		fmt.Printf("%s\n", feed.URL)
 	}
 	return nil
+}
+
+func (f *Feeder) Import() error {
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		url := strings.TrimSpace(scanner.Text())
+		if url == "" {
+			continue
+		}
+		if err := f.Add(url); err != nil {
+			return err
+		}
+	}
+	return scanner.Err()
 }

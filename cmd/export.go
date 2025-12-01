@@ -23,7 +23,7 @@ feeds caught up, export and import, and just mark everything read.`,
 		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
 		err := f.Export()
 		if err != nil {
-			return fmt.Errorf("error fetching feeds: %w", err)
+			return fmt.Errorf("error exporting feeds: %w", err)
 		}
 		return nil
 	},
