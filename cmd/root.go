@@ -27,7 +27,7 @@ var rootCmd = &cobra.Command{
 	Long: `Use the add command to build up a list of feeds to process. The fetch
 command then pulls down the feeds and merges them into a summary page.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		dbDir := viper.GetString("db-dir")
+		dbDir := feeder.ExpandPath(viper.GetString("db-dir"))
 		dbFile := viper.GetString("db-file")
 		filename := filepath.Join(dbDir, dbFile)
 		f, err := feeder.NewFeeder(filename)

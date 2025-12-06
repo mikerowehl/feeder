@@ -9,10 +9,14 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 const dataDirDefault = "."
 
+// GetDataDir returns the default directory to use for data files manged by
+// the program. If XDG_DATA_HOME is set we use a subdirectory under that
+// location. If not we try to use the platform to pick an appropriate default.
 func GetDataDir() string {
 	var dataDir string
 	xdgDataHome := os.Getenv("XDG_DATA_HOME")
@@ -54,6 +58,10 @@ func GetDataDir() string {
 	return dataDir
 }
 
+// GetConfigDir returns the default directory to use for configuration files.
+// If the XDG_CONFIG_HOME environment variable is set we use a subdirectory
+// under that. If not we default to a different platform specific location
+// based on common practice.
 func GetConfigDir() string {
 	var configDir string
 	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
@@ -80,4 +88,24 @@ func GetConfigDir() string {
 	}
 
 	return configDir
+}
+
+// ExpandPath provides the home directory shortcut (~) expansion and expands
+// Unix and Windows style environment variable references
+func ExpandPath(path string) string {
+	if path == "" {
+		return path
+	}
+
+	if strings.HasPrefix(path, "~/") {
+		if homeDir, err := os.UserHomeDir(); err == nil {
+			path = filepath.Join(homeDir, path[2:])
+		}
+	} else if path == "~" {
+		if homeDir, err := os.UserHomeDir(); err == nil {
+			path = homeDir
+		}
+	}
+	path = os.ExpandEnv(path)
+	return path
 }
