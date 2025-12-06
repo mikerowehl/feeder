@@ -15,13 +15,17 @@ import (
 // markCmd represents the mark command
 var markCmd = &cobra.Command{
 	Use:   "mark",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Marks all of the items in the database as read",
+	Long: `By default all of the items added to the database are marked as unread so they'll go
+into the next page of posts. This command marks all of the items as read. This
+is called automatically as part of the daily command. If you're using each 
+command individually it should be called after calling read to generate a page
+of posts to read:
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+feeder fetch # retreive the latest from the feed
+feeder read  # generate a local file with all the posts to read
+feeder mark  # mark everything in the database as read
+feeder open  # open the genereated file in your default browser`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
 		err := f.MarkAll()
