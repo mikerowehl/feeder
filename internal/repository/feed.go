@@ -6,6 +6,8 @@ See LICENSE in the project root for full license information.
 package repository
 
 import (
+	"errors"
+
 	"github.com/mikerowehl/feeder/internal/rss"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -76,6 +78,28 @@ func (r *FeedRepository) Unread() ([]rss.Feed, error) {
 func (r *FeedRepository) MarkAll() error {
 	result := r.db.Model(&rss.Item{}).Where("read = ?", false).Update("read", true)
 	return result.Error
+}
+
+func (r *FeedRepository) TrimItems(feedId uint, count int) error {
+	var cutoffID uint
+	err := r.db.Model(&rss.Item{}).
+		Where("feed_id = ?", feedId).
+		Order("published DESC").
+		Offset(count).
+		Limit(1).
+		Pluck("id", &cutoffID).
+		Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// There are fewer than count recs, nothing to trim
+			return nil
+		}
+		return err
+	}
+
+	return r.db.Where("feed_id = ? AND id <= ?", feedId, cutoffID).
+		Delete(&rss.Item{}).
+		Error
 }
 
 func (r *FeedRepository) Close() error {

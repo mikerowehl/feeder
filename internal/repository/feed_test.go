@@ -233,3 +233,62 @@ func TestRepository_MarkAll(t *testing.T) {
 	require.Len(t, fetched, 1)
 	require.Len(t, fetched[0].Items, 0)
 }
+
+func TestRepository_TrimItems(t *testing.T) {
+	r := setupRepository(t)
+	feeds := []rss.Feed{
+		{Title: "Feed 1", URL: "https://example.com/feed1.rss", Items: []rss.Item{
+			{Title: "Feed 1 Item 1",
+				Link:      "https://feed1.com/i1",
+				Content:   "content for 1/1",
+				GUID:      "guid1",
+				Published: time.Now().Add(time.Duration(-48) * time.Hour)},
+			{Title: "Feed 1 Item 2",
+				Link:      "https://feed1.com/i2",
+				Content:   "content for 1/2",
+				GUID:      "guid2",
+				Published: time.Now().Add(time.Duration(-24) * time.Hour)},
+			{Title: "Feed 1 Item 3",
+				Link:      "https://feed1.com/i3",
+				Content:   "content for 1/3",
+				GUID:      "guid3",
+				Published: time.Now().Add(time.Duration(-2) * time.Hour)},
+			{Title: "Feed 1 Item 4",
+				Link:      "https://feed1.com/i4",
+				Content:   "content for 1/4",
+				GUID:      "guid4",
+				Published: time.Now().Add(time.Duration(-1) * time.Hour)},
+		}},
+		{Title: "Feed 2", URL: "https://example.com/feed2.rss", Items: []rss.Item{
+			{Title: "Feed 2 Item 1",
+				Link:      "https://feed2.com/i1",
+				Content:   "content for 2/1",
+				GUID:      "guid10",
+				Published: time.Now().Add(time.Duration(-2) * time.Hour)},
+			{Title: "Feed 2 Item 2",
+				Link:      "https://feed2.com/i2",
+				Content:   "content for 2/2",
+				GUID:      "guid11",
+				Published: time.Now().Add(time.Duration(-1) * time.Hour)},
+		}},
+	}
+	for i := range feeds {
+		err := r.Save(&feeds[i])
+		require.NoError(t, err)
+	}
+	err := r.TrimItems(feeds[0].ID, 2)
+	require.NoError(t, err)
+	err = r.TrimItems(feeds[1].ID, 2)
+	require.NoError(t, err)
+	fetched, err := r.All()
+	require.NoError(t, err)
+	require.Len(t, fetched, 2)
+	for i := range fetched {
+		feed := fetched[i]
+		if feed.Title == "Feed 1" {
+			require.Len(t, feed.Items, 2)
+		} else if feed.Title == "Feed 2" {
+			require.Len(t, feed.Items, 2)
+		}
+	}
+}
