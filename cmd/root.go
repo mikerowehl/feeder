@@ -82,9 +82,12 @@ func init() {
 	rootCmd.PersistentFlags().String("db-dir", defaultDataDir, dataDirHelp)
 	rootCmd.PersistentFlags().String("db-file", "feeder.db",
 		"database file name (default feeder.db)")
+	rootCmd.PersistentFlags().Int("max-items", 100,
+		"Maximum number of items to store per feed")
 
 	viper.BindPFlag("db-dir", rootCmd.PersistentFlags().Lookup("db-dir"))
 	viper.BindPFlag("db-file", rootCmd.PersistentFlags().Lookup("db-file"))
+	viper.BindPFlag("max-items", rootCmd.PersistentFlags().Lookup("max-items"))
 }
 
 func initConfig() {

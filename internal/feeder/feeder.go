@@ -166,3 +166,20 @@ func (f *Feeder) Import() error {
 	}
 	return scanner.Err()
 }
+
+func (f *Feeder) Trim(maxItems int) error {
+	feeds, err := f.Db.AllFeeds()
+	if err != nil {
+		return fmt.Errorf("error reading feeds: %w", err)
+	}
+	for i := range feeds {
+		feed := &feeds[i]
+		fmt.Printf("Trimming feed %s\n", feed.URL)
+		err := f.Db.TrimItems(feed.ID, maxItems)
+		if err != nil {
+			fmt.Printf("  Error trimming feed %v", err)
+		}
+	}
+	fmt.Printf("Cleaning up database file\n")
+	return f.Db.Vacuum()
+}

@@ -82,7 +82,7 @@ func (r *FeedRepository) MarkAll() error {
 
 func (r *FeedRepository) TrimItems(feedId uint, count int) error {
 	var cutoffID uint
-	err := r.db.Model(&rss.Item{}).
+	err := r.db.Unscoped().Model(&rss.Item{}).
 		Where("feed_id = ?", feedId).
 		Order("published DESC").
 		Offset(count).
@@ -97,9 +97,13 @@ func (r *FeedRepository) TrimItems(feedId uint, count int) error {
 		return err
 	}
 
-	return r.db.Where("feed_id = ? AND id <= ?", feedId, cutoffID).
+	return r.db.Unscoped().Where("feed_id = ? AND id <= ?", feedId, cutoffID).
 		Delete(&rss.Item{}).
 		Error
+}
+
+func (r *FeedRepository) Vacuum() error {
+	return r.db.Exec("VACUUM").Error
 }
 
 func (r *FeedRepository) Close() error {
