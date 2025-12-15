@@ -10,6 +10,7 @@ import (
 
 	"github.com/mikerowehl/feeder/internal/feeder"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // dailyCmd represents the daily command
@@ -32,6 +33,11 @@ operation and only goes to the next if everything is okay.`,
 		err = f.MarkAll()
 		if err != nil {
 			return fmt.Errorf("error marking feeds: %w", err)
+		}
+		maxItems := viper.GetInt("max-items")
+		err = f.Trim(maxItems)
+		if err != nil {
+			fmt.Println("Problem trimming database: " + err.Error())
 		}
 		return f.Open(outFile)
 	},
