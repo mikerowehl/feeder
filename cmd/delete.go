@@ -33,5 +33,5 @@ ex: feeder delete 5`,
 }
 
 func init() {
-	rootCmd.AddCommand(deleteCmd)
+	RegisterSubcommand(deleteCmd)
 }

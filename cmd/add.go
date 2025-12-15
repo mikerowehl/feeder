@@ -29,5 +29,5 @@ ex: feeder add "https://rowehl.com/feed.xml"`,
 }
 
 func init() {
-	rootCmd.AddCommand(addCmd)
+	RegisterSubcommand(addCmd)
 }

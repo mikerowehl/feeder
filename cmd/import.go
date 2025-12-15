@@ -28,5 +28,5 @@ the urls and add each one to the database.`,
 }
 
 func init() {
-	rootCmd.AddCommand(importCmd)
+	RegisterSubcommand(importCmd)
 }

@@ -30,5 +30,5 @@ feeds caught up, export and import, and just mark everything read.`,
 }
 
 func init() {
-	rootCmd.AddCommand(exportCmd)
+	RegisterSubcommand(exportCmd)
 }

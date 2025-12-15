@@ -30,5 +30,5 @@ each of the URLs and updates the items associated with the feed.`,
 }
 
 func init() {
-	rootCmd.AddCommand(fetchCmd)
+	RegisterSubcommand(fetchCmd)
 }

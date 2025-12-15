@@ -25,5 +25,5 @@ housekeeping on the database file to optimize performance.`,
 }
 
 func init() {
-	rootCmd.AddCommand(trimCmd)
+	RegisterSubcommand(trimCmd)
 }

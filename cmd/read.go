@@ -33,5 +33,5 @@ page in the current directory with a table of all the unread items.`,
 }
 
 func init() {
-	rootCmd.AddCommand(readCmd)
+	RegisterSubcommand(readCmd)
 }
