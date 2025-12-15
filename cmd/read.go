@@ -13,25 +13,27 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// readCmd represents the read command
-var readCmd = &cobra.Command{
-	Use:   "read",
-	Short: "Write a page with all unread items",
-	Long: `Searches through the local database for any items not yet marked as read (so
+func NewReadCmd() *cobra.Command {
+	readCmd := &cobra.Command{
+		Use:   "read",
+		Short: "Write a page with all unread items",
+		Long: `Searches through the local database for any items not yet marked as read (so
 the feeds must have already been pulled with fetch) and writes out a single
 page in the current directory with a table of all the unread items.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
-		outfile := fmt.Sprintf("feeder-%s.html", time.Now().Format(time.DateOnly))
-		err := f.WriteUnread(outfile)
-		if err != nil {
-			return fmt.Errorf("error writing out unread: %w", err)
-		}
-		fmt.Println("read called")
-		return nil
-	},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			f := cmd.Context().Value(feederKey).(*feeder.Feeder)
+			outfile := fmt.Sprintf("feeder-%s.html", time.Now().Format(time.DateOnly))
+			err := f.WriteUnread(outfile)
+			if err != nil {
+				return fmt.Errorf("error writing out unread: %w", err)
+			}
+			fmt.Println("read called")
+			return nil
+		},
+	}
+	return readCmd
 }
 
 func init() {
-	RegisterSubcommand(readCmd)
+	RegisterSubcommand(NewReadCmd)
 }

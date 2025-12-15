@@ -12,23 +12,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// fetchCmd represents the fetch command
-var fetchCmd = &cobra.Command{
-	Use:   "fetch",
-	Short: "Fetch the content from feeds and update the local set of items",
-	Long: `For the set of feeds in the local database this fetches the content from
+func NewFetchCmd() *cobra.Command {
+	fetchCmd := &cobra.Command{
+		Use:   "fetch",
+		Short: "Fetch the content from feeds and update the local set of items",
+		Long: `For the set of feeds in the local database this fetches the content from
 each of the URLs and updates the items associated with the feed.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
-		err := f.Fetch()
-		if err != nil {
-			return fmt.Errorf("error fetching feeds: %w", err)
-		}
-		fmt.Println("fetch finished")
-		return nil
-	},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			f := cmd.Context().Value(feederKey).(*feeder.Feeder)
+			err := f.Fetch()
+			if err != nil {
+				return fmt.Errorf("error fetching feeds: %w", err)
+			}
+			fmt.Println("fetch finished")
+			return nil
+		},
+	}
+	return fetchCmd
 }
 
 func init() {
-	RegisterSubcommand(fetchCmd)
+	RegisterSubcommand(NewFetchCmd)
 }

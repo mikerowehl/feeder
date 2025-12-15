@@ -12,21 +12,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var importCmd = &cobra.Command{
-	Use:   "import",
-	Short: "Reads a set of urls from standard input and adds them",
-	Long: `Input on standard input should be a set of urls, one per line. This will read
+func NewImportCmd() *cobra.Command {
+	importCmd := &cobra.Command{
+		Use:   "import",
+		Short: "Reads a set of urls from standard input and adds them",
+		Long: `Input on standard input should be a set of urls, one per line. This will read
 the urls and add each one to the database.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
-		err := f.Import()
-		if err != nil {
-			return fmt.Errorf("error importing feeds: %w", err)
-		}
-		return nil
-	},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			f := cmd.Context().Value(feederKey).(*feeder.Feeder)
+			err := f.Import()
+			if err != nil {
+				return fmt.Errorf("error importing feeds: %w", err)
+			}
+			return nil
+		},
+	}
+	return importCmd
 }
 
 func init() {
-	RegisterSubcommand(importCmd)
+	RegisterSubcommand(NewImportCmd)
 }

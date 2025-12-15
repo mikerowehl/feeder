@@ -24,16 +24,22 @@ import (
 
 const feederKey = "feeder"
 
-var subcommands []*cobra.Command
+// In a simple Cobra app there's a root command and the init() for each
+// subcommand adds itself to the root. But we want to be able to create new
+// rootCmd instances on the fly for testing. So instead we have the
+// subcommands register generator functions that we can call to make a new
+// instance for each new rootCmd.
+type SubcommandFactory func() *cobra.Command
 
-func RegisterSubcommand(cmd *cobra.Command) {
-	subcommands = append(subcommands, cmd)
+var subcommands []SubcommandFactory
+
+func RegisterSubcommand(factory SubcommandFactory) {
+	subcommands = append(subcommands, factory)
 }
 
 func NewRootCommand(skipConfig bool) *cobra.Command {
 	var cfgFile string
 
-	// rootCmd represents the base command when called without any subcommands
 	var rootCmd = &cobra.Command{
 		Use:   "feeder",
 		Short: "A basic command line syndicated feed processor",
@@ -43,7 +49,7 @@ command then pulls down the feeds and merges them into a summary page.`,
 			dbDir := feeder.ExpandPath(viper.GetString("db-dir"))
 			dbFile := viper.GetString("db-file")
 			filename := filepath.Join(dbDir, dbFile)
-			f, err := feeder.NewFeeder(filename)
+			f, err := feeder.NewFeeder(filename, cmd.OutOrStdout(), cmd.ErrOrStderr(), cmd.InOrStdin())
 			if err != nil {
 				return err
 			}
@@ -96,15 +102,13 @@ command then pulls down the feeds and merges them into a summary page.`,
 	viper.BindPFlag("db-file", rootCmd.PersistentFlags().Lookup("db-file"))
 	viper.BindPFlag("max-items", rootCmd.PersistentFlags().Lookup("max-items"))
 
-	for _, cmd := range subcommands {
-		rootCmd.AddCommand(cmd)
+	for _, factory := range subcommands {
+		rootCmd.AddCommand(factory())
 	}
 
 	return rootCmd
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	rootCmd := NewRootCommand(false)
 	err := rootCmd.Execute()

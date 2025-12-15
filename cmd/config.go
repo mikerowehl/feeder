@@ -12,26 +12,28 @@ import (
 	"github.com/spf13/viper"
 )
 
-// listCmd represents the list command
-var configCmd = &cobra.Command{
-	Use:   "config",
-	Short: "Display all the config values currently active",
-	Long: `Outputs the location of the config file being used and the values of all the
+func NewConfigCmd() *cobra.Command {
+	configCmd := &cobra.Command{
+		Use:   "config",
+		Short: "Display all the config values currently active",
+		Long: `Outputs the location of the config file being used and the values of all the
 	settings configured using any config mechanism (flags, config file, or environment).`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if cfgFile := viper.ConfigFileUsed(); cfgFile != "" {
-			fmt.Printf("Config file: %s\n", cfgFile)
-		} else {
-			fmt.Printf("No config file being used\n")
-		}
-		settings := viper.AllSettings()
-		for key, value := range settings {
-			fmt.Printf("%s: %v\n", key, value)
-		}
-		return nil
-	},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if cfgFile := viper.ConfigFileUsed(); cfgFile != "" {
+				fmt.Printf("Config file: %s\n", cfgFile)
+			} else {
+				fmt.Printf("No config file being used\n")
+			}
+			settings := viper.AllSettings()
+			for key, value := range settings {
+				fmt.Printf("%s: %v\n", key, value)
+			}
+			return nil
+		},
+	}
+	return configCmd
 }
 
 func init() {
-	RegisterSubcommand(configCmd)
+	RegisterSubcommand(NewConfigCmd)
 }

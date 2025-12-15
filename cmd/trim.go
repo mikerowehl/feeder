@@ -11,19 +11,22 @@ import (
 	"github.com/spf13/viper"
 )
 
-var trimCmd = &cobra.Command{
-	Use:   "trim",
-	Short: "Trims the number of items per feed to a max number",
-	Long: `Keeps only the most recent items for each feed. This keeps the local database
+func NewTrimCmd() *cobra.Command {
+	trimCmd := &cobra.Command{
+		Use:   "trim",
+		Short: "Trims the number of items per feed to a max number",
+		Long: `Keeps only the most recent items for each feed. This keeps the local database
 from getting too large and keeps things running quickly. Also runs some
 housekeeping on the database file to optimize performance.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
-		maxItems := viper.GetInt("max-items")
-		return f.Trim(maxItems)
-	},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			f := cmd.Context().Value(feederKey).(*feeder.Feeder)
+			maxItems := viper.GetInt("max-items")
+			return f.Trim(maxItems)
+		},
+	}
+	return trimCmd
 }
 
 func init() {
-	RegisterSubcommand(trimCmd)
+	RegisterSubcommand(NewTrimCmd)
 }

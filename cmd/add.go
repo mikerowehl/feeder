@@ -10,24 +10,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// addCmd represents the add command
-var addCmd = &cobra.Command{
-	Use:   "add URL",
-	Short: "Add a URL to the list of feeds",
-	Long: `Adds the URL given to the list in the database. The URL should be
+func NewAddCommand() *cobra.Command {
+	addCmd := &cobra.Command{
+		Use:   "add URL",
+		Short: "Add a URL to the list of feeds",
+		Long: `Adds the URL given to the list in the database. The URL should be
 passed directly as an argument. Make sure the URL is a full URL with all 
 components, and note that you might need to quote the URL depending on the 
 contents of the URL and what environment you're running in.
 
 ex: feeder add "https://rowehl.com/feed.xml"`,
-	Args: cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		feedUrl := args[0]
-		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
-		return f.Add(feedUrl)
-	},
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			feedUrl := args[0]
+			f := cmd.Context().Value(feederKey).(*feeder.Feeder)
+			return f.Add(feedUrl)
+		},
+	}
+	return addCmd
 }
 
 func init() {
-	RegisterSubcommand(addCmd)
+	RegisterSubcommand(NewAddCommand)
 }

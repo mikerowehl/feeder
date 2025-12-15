@@ -10,7 +10,7 @@ import (
 	_ "embed"
 	"fmt"
 	"html/template"
-	"log"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -25,6 +25,9 @@ import (
 type Feeder struct {
 	Db     *repository.FeedRepository
 	Client *http.Client
+	out    io.Writer
+	err    io.Writer
+	in     io.Reader
 }
 
 //go:embed templates/feed.html
@@ -33,7 +36,7 @@ var feedTemplate string
 const appName = "feeder"
 const maxItems = 100
 
-func NewFeeder(dbFile string) (*Feeder, error) {
+func NewFeeder(dbFile string, cmdOut io.Writer, cmdErr io.Writer, cmdIn io.Reader) (*Feeder, error) {
 	f := &Feeder{}
 	r, err := repository.NewFeedRepository(dbFile)
 	if err != nil {
@@ -41,6 +44,9 @@ func NewFeeder(dbFile string) (*Feeder, error) {
 	}
 	f.Db = r
 	f.Client = &http.Client{Timeout: 30 * time.Second}
+	f.out = cmdOut
+	f.err = cmdErr
+	f.in = cmdIn
 	return f, nil
 }
 
@@ -85,7 +91,7 @@ func (f *Feeder) Fetch() error {
 		if err != nil {
 			return fmt.Errorf("Error saving feed %s: %w", feed.URL, err)
 		}
-		log.Println("Fetched:", feed.URL)
+		fmt.Fprintln(f.out, "Fetched:", feed.URL)
 	}
 	return nil
 }
@@ -118,7 +124,7 @@ func (f *Feeder) List() error {
 	}
 	for i := range feeds {
 		feed := &feeds[i]
-		fmt.Printf("%d: %s (%s)\n", feed.ID, feed.Title, feed.URL)
+		fmt.Fprintf(f.out, "%d: %s (%s)\n", feed.ID, feed.Title, feed.URL)
 	}
 	return nil
 }
@@ -148,13 +154,13 @@ func (f *Feeder) Export() error {
 	}
 	for i := range feeds {
 		feed := &feeds[i]
-		fmt.Printf("%s\n", feed.URL)
+		fmt.Fprintf(f.out, "%s\n", feed.URL)
 	}
 	return nil
 }
 
 func (f *Feeder) Import() error {
-	scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(f.in)
 	for scanner.Scan() {
 		url := strings.TrimSpace(scanner.Text())
 		if url == "" {
@@ -174,12 +180,12 @@ func (f *Feeder) Trim(maxItems int) error {
 	}
 	for i := range feeds {
 		feed := &feeds[i]
-		fmt.Printf("Trimming feed %s\n", feed.URL)
+		fmt.Fprintf(f.out, "Trimming feed %s\n", feed.URL)
 		err := f.Db.TrimItems(feed.ID, maxItems)
 		if err != nil {
-			fmt.Printf("  Error trimming feed %v", err)
+			fmt.Fprintf(f.out, "  Error trimming feed %v", err)
 		}
 	}
-	fmt.Printf("Cleaning up database file\n")
+	fmt.Fprintf(f.out, "Cleaning up database file\n")
 	return f.Db.Vacuum()
 }

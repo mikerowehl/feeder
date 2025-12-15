@@ -12,23 +12,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var exportCmd = &cobra.Command{
-	Use:   "export",
-	Short: "Writes the list of feeds from the database out to standard output",
-	Long: `Very minimal output just written to standard output. This can be captured and then
+func NewExportCmd() *cobra.Command {
+	exportCmd := &cobra.Command{
+		Use:   "export",
+		Short: "Writes the list of feeds from the database out to standard output",
+		Long: `Very minimal output just written to standard output. This can be captured and then
 fed back into the import command when rebuilding the database. There isn't
 currently any way to capture the read/unread status. So I normally get the
 feeds caught up, export and import, and just mark everything read.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		f := cmd.Context().Value(feederKey).(*feeder.Feeder)
-		err := f.Export()
-		if err != nil {
-			return fmt.Errorf("error exporting feeds: %w", err)
-		}
-		return nil
-	},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			f := cmd.Context().Value(feederKey).(*feeder.Feeder)
+			err := f.Export()
+			if err != nil {
+				return fmt.Errorf("error exporting feeds: %w", err)
+			}
+			return nil
+		},
+	}
+	return exportCmd
 }
 
 func init() {
-	RegisterSubcommand(exportCmd)
+	RegisterSubcommand(NewExportCmd)
 }
