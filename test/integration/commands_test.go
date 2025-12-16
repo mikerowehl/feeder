@@ -31,8 +31,9 @@ func executeCommand(t *testing.T, args ...string) (string, string, error) {
 	return stdoutBuf.String(), stderrBuf.String(), err
 }
 
+// Just make sure the help for each command outputs a Usage section
 func TestIntegration_Help(t *testing.T) {
-	commands := []string{"add"}
+	commands := []string{"add", "config", "daily", "delete", "export", "fetch", "import", "list", "mark", "read", "trim"}
 
 	for _, cmd := range commands {
 		t.Run(cmd, func(t *testing.T) {
@@ -44,6 +45,8 @@ func TestIntegration_Help(t *testing.T) {
 	}
 }
 
+// Make sure we can add a feed and that it fetches the feed title to use in
+// the list command
 func TestIntegration_Add(t *testing.T) {
 	tmpDir := t.TempDir()
 	server := startTestFeedServer(t)
