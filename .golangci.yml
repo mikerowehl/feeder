@@ -1,0 +1,31 @@
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - errcheck      # checks for unchecked errors
+    - gosimple      # simplify code
+    - govet         # standard go vet
+    - ineffassign   # detects ineffectual assignments
+    - staticcheck   # go vet on steroids
+    - unused        # checks for unused constants, variables, functions
+    - gofmt         # checks formatting
+    - goimports     # checks import formatting
+    - misspell      # finds commonly misspelled words
+    - revive        # fast, configurable, extensible linter
+    - bodyclose     # checks HTTP body closes
+    - gocritic      # provides diagnostics that check for bugs, performance, and style issues
+
+linters-settings:
+  errcheck:
+    check-blank: true
+  govet:
+    check-shadowing: true
+  revive:
+    confidence: 0.8
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0

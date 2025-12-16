@@ -35,7 +35,7 @@ func setupRepository(t *testing.T) *repository.FeedRepository {
 	t.Cleanup(func() {
 		err := r.Close()
 		if err != nil {
-			t.Fatalf("failed to close respository: %v", err)
+			t.Fatalf("failed to close repository: %v", err)
 		}
 	})
 	return r
