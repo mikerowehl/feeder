@@ -8,6 +8,7 @@ package rss
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"slices"
 	"sort"
@@ -52,7 +53,11 @@ func FetchFeedContent(url string, client *http.Client) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("failed to close feed body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("unexpected http status: %v", resp.Status)
