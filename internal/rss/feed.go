@@ -54,8 +54,8 @@ func FetchFeedContent(url string, client *http.Client) (string, error) {
 		return "", err
 	}
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Printf("failed to close feed body: %v", err)
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			log.Printf("failed to close feed body: %v", closeErr)
 		}
 	}()
 
@@ -70,7 +70,7 @@ func FetchFeedContent(url string, client *http.Client) (string, error) {
 	return string(body), nil
 }
 
-// Initialy fetch a feed given a URL. Updates just the metadata necessary to
+// Initially fetch a feed given a URL. Updates just the metadata necessary to
 // make the feed itself. Doesn't process items in the feed. The feed at this
 // point doesn't have a database ID, so we wouldn't be able to make those
 // child items and link them to the parent yet.

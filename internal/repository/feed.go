@@ -30,7 +30,10 @@ func NewFeedRepository(filename string) (*FeedRepository, error) {
 		return nil, err
 	}
 	db.Exec("PRAGMA foreign_keys = ON")
-	db.AutoMigrate(&rss.Feed{}, &rss.Item{})
+	err = db.AutoMigrate(&rss.Feed{}, &rss.Item{})
+	if err != nil {
+		return nil, err
+	}
 	return &FeedRepository{db: db}, nil
 }
 

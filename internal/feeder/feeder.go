@@ -56,7 +56,9 @@ func TodayFile() string {
 
 func (f *Feeder) Close() {
 	if f.Db != nil {
-		f.Db.Close()
+		if err := f.Db.Close(); err != nil {
+			LoggedPrint(f.err, "Error closing database: %v", err)
+		}
 	}
 }
 
@@ -91,7 +93,7 @@ func (f *Feeder) Fetch() error {
 		if err != nil {
 			return fmt.Errorf("Error saving feed %s: %w", feed.URL, err)
 		}
-		fmt.Fprintln(f.out, "Fetched:", feed.URL)
+		LoggedPrint(f.out, "Fetched: %s\n", feed.URL)
 	}
 	return nil
 }
@@ -109,7 +111,11 @@ func (f *Feeder) WriteUnread(outFilename string) error {
 	if err != nil {
 		return fmt.Errorf("Error opening output file %s: %w", outFilename, err)
 	}
-	defer outFile.Close()
+	defer func() {
+		if closeErr := outFile.Close(); closeErr != nil {
+			LoggedPrint(f.err, "Error closing output: %v", closeErr)
+		}
+	}()
 	err = tmpl.Execute(outFile, output.SanitizeFeeds(unread))
 	if err != nil {
 		return fmt.Errorf("Error executing template: %w", err)
@@ -124,7 +130,7 @@ func (f *Feeder) List() error {
 	}
 	for i := range feeds {
 		feed := &feeds[i]
-		fmt.Fprintf(f.out, "%d: %s (%s)\n", feed.ID, feed.Title, feed.URL)
+		LoggedPrint(f.out, "%d: %s (%s)\n", feed.ID, feed.Title, feed.URL)
 	}
 	return nil
 }
@@ -154,7 +160,7 @@ func (f *Feeder) Export() error {
 	}
 	for i := range feeds {
 		feed := &feeds[i]
-		fmt.Fprintf(f.out, "%s\n", feed.URL)
+		LoggedPrint(f.out, "%s\n", feed.URL)
 	}
 	return nil
 }
@@ -180,12 +186,12 @@ func (f *Feeder) Trim(maxItems int) error {
 	}
 	for i := range feeds {
 		feed := &feeds[i]
-		fmt.Fprintf(f.out, "Trimming feed %s\n", feed.URL)
+		LoggedPrint(f.out, "Trimming feed %s\n", feed.URL)
 		err := f.Db.TrimItems(feed.ID, maxItems)
 		if err != nil {
-			fmt.Fprintf(f.out, "  Error trimming feed %v", err)
+			LoggedPrint(f.out, "  Error trimming feed %v", err)
 		}
 	}
-	fmt.Fprintf(f.out, "Cleaning up database file\n")
+	LoggedPrint(f.out, "Cleaning up database file\n")
 	return f.Db.Vacuum()
 }

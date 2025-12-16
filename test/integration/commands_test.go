@@ -53,10 +53,10 @@ func TestIntegration_Add(t *testing.T) {
 	feedURL := getTestFeedURL(server, "basic.xml")
 	testArgs := []string{"--db-dir", tmpDir, "--db-file", "test.db"}
 
-	stdout, _, err := executeCommand(t, append(testArgs, "add", feedURL)...)
+	_, _, err := executeCommand(t, append(testArgs, "add", feedURL)...)
 	require.NoError(t, err)
 
-	stdout, _, err = executeCommand(t, append(testArgs, "list")...)
+	stdout, _, err := executeCommand(t, append(testArgs, "list")...)
 	require.NoError(t, err)
 	assert.Contains(t, stdout, "Feeder Basic Integration Test")
 }

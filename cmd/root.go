@@ -14,6 +14,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -22,7 +23,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-const feederKey = "feeder"
+type feederKeyType struct{}
+
+var feederKey = feederKeyType{}
 
 // In a simple Cobra app there's a root command and the init() for each
 // subcommand adds itself to the root. But we want to be able to create new
@@ -35,6 +38,13 @@ var subcommands []SubcommandFactory
 
 func RegisterSubcommand(factory SubcommandFactory) {
 	subcommands = append(subcommands, factory)
+}
+
+func checkedBinding(name string, cmd *cobra.Command) {
+	err := viper.BindPFlag(name, cmd.PersistentFlags().Lookup(name))
+	if err != nil {
+		log.Printf("Error binding %s flag\n", name)
+	}
 }
 
 func NewRootCommand(skipConfig bool) *cobra.Command {
@@ -73,11 +83,6 @@ command then pulls down the feeds and merges them into a summary page.`,
 
 			return nil
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) == 0 {
-				cmd.Help()
-			}
-		},
 	}
 
 	if !skipConfig {
@@ -98,9 +103,9 @@ command then pulls down the feeds and merges them into a summary page.`,
 	rootCmd.PersistentFlags().Int("max-items", 100,
 		"Maximum number of items to store per feed")
 
-	viper.BindPFlag("db-dir", rootCmd.PersistentFlags().Lookup("db-dir"))
-	viper.BindPFlag("db-file", rootCmd.PersistentFlags().Lookup("db-file"))
-	viper.BindPFlag("max-items", rootCmd.PersistentFlags().Lookup("max-items"))
+	checkedBinding("db-dir", rootCmd)
+	checkedBinding("db-file", rootCmd)
+	checkedBinding("max-items", rootCmd)
 
 	for _, factory := range subcommands {
 		rootCmd.AddCommand(factory())

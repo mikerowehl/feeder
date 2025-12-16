@@ -22,7 +22,7 @@ is called automatically as part of the daily command. If you're using each
 command individually it should be called after calling read to generate a page
 of posts to read:
 
-feeder fetch # retreive the latest from the feed
+feeder fetch # retrieve the latest from the feed
 feeder read  # generate a local file with all the posts to read
 feeder mark  # mark everything in the database as read
 feeder open  # open the genereated file in your default browser`,

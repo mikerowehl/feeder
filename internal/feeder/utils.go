@@ -6,6 +6,9 @@ See LICENSE in the project root for full license information.
 package feeder
 
 import (
+	"fmt"
+	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -70,16 +73,25 @@ func GetConfigDir() string {
 	} else {
 		switch runtime.GOOS {
 		case "linux":
-			homeDir, _ := os.UserHomeDir()
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				homeDir = "."
+			}
 			configDir = filepath.Join(homeDir, ".config", appName)
 		case "darwin":
-			homeDir, _ := os.UserHomeDir()
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				homeDir = "."
+			}
 			configDir = filepath.Join(homeDir, "Library", "Application Support", appName)
 		case "windows":
 			if appData := os.Getenv("APPDATA"); appData != "" {
 				configDir = filepath.Join(appData, appName)
 			} else {
-				homeDir, _ := os.UserHomeDir()
+				homeDir, err := os.UserHomeDir()
+				if err != nil {
+					homeDir = "."
+				}
 				configDir = filepath.Join(homeDir, "AppData", "Roaming", appName)
 			}
 		default:
@@ -108,4 +120,13 @@ func ExpandPath(path string) string {
 	}
 	path = os.ExpandEnv(path)
 	return path
+}
+
+// Wrapper for Fprintf that writes a log to standard output if there's a
+// problem outputting to the desired handle.
+func LoggedPrint(w io.Writer, format string, args ...any) {
+	_, err := fmt.Fprintf(w, format, args...)
+	if err != nil {
+		log.Printf("Error writing output: %v", err)
+	}
 }
