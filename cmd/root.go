@@ -102,10 +102,12 @@ command then pulls down the feeds and merges them into a summary page.`,
 		"database file name (default feeder.db)")
 	rootCmd.PersistentFlags().Int("max-items", 100,
 		"Maximum number of items to store per feed")
+	rootCmd.PersistentFlags().String("output", "", "filename to output HTML")
 
 	checkedBinding("db-dir", rootCmd)
 	checkedBinding("db-file", rootCmd)
 	checkedBinding("max-items", rootCmd)
+	checkedBinding("output", rootCmd)
 
 	for _, factory := range subcommands {
 		rootCmd.AddCommand(factory())

@@ -99,6 +99,7 @@ func (f *Feeder) Fetch() error {
 }
 
 func (f *Feeder) WriteUnread(outFilename string) error {
+	var w io.Writer
 	unread, err := f.Db.Unread()
 	if err != nil {
 		return fmt.Errorf("Error fetching feeds: %w", err)
@@ -107,16 +108,21 @@ func (f *Feeder) WriteUnread(outFilename string) error {
 	if err != nil {
 		return fmt.Errorf("Error opening template: %v", err)
 	}
-	outFile, err := os.OpenFile(outFilename, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0644)
-	if err != nil {
-		return fmt.Errorf("Error opening output file %s: %w", outFilename, err)
-	}
-	defer func() {
-		if closeErr := outFile.Close(); closeErr != nil {
-			LoggedPrint(f.err, "Error closing output: %v", closeErr)
+	if outFilename == "-" {
+		w = f.out
+	} else {
+		outFile, err := os.Create(outFilename)
+		if err != nil {
+			return fmt.Errorf("Error opening output file %s: %w", outFilename, err)
 		}
-	}()
-	err = tmpl.Execute(outFile, output.SanitizeFeeds(unread))
+		defer func() {
+			if closeErr := outFile.Close(); closeErr != nil {
+				LoggedPrint(f.err, "Error closing output: %v", closeErr)
+			}
+		}()
+		w = outFile
+	}
+	err = tmpl.Execute(w, output.SanitizeFeeds(unread))
 	if err != nil {
 		return fmt.Errorf("Error executing template: %w", err)
 	}

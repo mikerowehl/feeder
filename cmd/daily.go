@@ -25,7 +25,7 @@ operation and only goes to the next if everything is okay.`,
 			if err != nil {
 				return fmt.Errorf("error fetching feeds: %w", err)
 			}
-			outFile := feeder.TodayFile()
+			outFile := defaultedOutput()
 			err = f.WriteUnread(outFile)
 			if err != nil {
 				return fmt.Errorf("error writing out unread: %w", err)
