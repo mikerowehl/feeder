@@ -23,11 +23,12 @@ import (
 )
 
 type Feeder struct {
-	Db     *repository.FeedRepository
-	Client *http.Client
-	out    io.Writer
-	err    io.Writer
-	in     io.Reader
+	Db      *repository.FeedRepository
+	Client  *http.Client
+	Verbose bool
+	out     io.Writer
+	err     io.Writer
+	in      io.Reader
 }
 
 //go:embed templates/feed.html
@@ -44,6 +45,7 @@ func NewFeeder(dbFile string, cmdOut io.Writer, cmdErr io.Writer, cmdIn io.Reade
 	}
 	f.Db = r
 	f.Client = &http.Client{Timeout: 30 * time.Second}
+	f.Verbose = false
 	f.out = cmdOut
 	f.err = cmdErr
 	f.in = cmdIn
@@ -93,7 +95,9 @@ func (f *Feeder) Fetch() error {
 		if err != nil {
 			return fmt.Errorf("Error saving feed %s: %w", feed.URL, err)
 		}
-		LoggedPrint(f.out, "Fetched: %s\n", feed.URL)
+		if f.Verbose {
+			LoggedPrint(f.out, "Fetched: %s\n", feed.URL)
+		}
 	}
 	return nil
 }
@@ -111,9 +115,9 @@ func (f *Feeder) WriteUnread(outFilename string) error {
 	if outFilename == "-" {
 		w = f.out
 	} else {
-		outFile, err := os.Create(outFilename)
-		if err != nil {
-			return fmt.Errorf("Error opening output file %s: %w", outFilename, err)
+		outFile, outErr := os.Create(outFilename)
+		if outErr != nil {
+			return fmt.Errorf("Error opening output file %s: %w", outFilename, outErr)
 		}
 		defer func() {
 			if closeErr := outFile.Close(); closeErr != nil {
@@ -192,7 +196,9 @@ func (f *Feeder) Trim(maxItems int) error {
 	}
 	for i := range feeds {
 		feed := &feeds[i]
-		LoggedPrint(f.out, "Trimming feed %s\n", feed.URL)
+		if f.Verbose {
+			LoggedPrint(f.out, "Trimming feed %s\n", feed.URL)
+		}
 		err := f.Db.TrimItems(feed.ID, maxItems)
 		if err != nil {
 			LoggedPrint(f.out, "  Error trimming feed %v", err)
@@ -200,4 +206,12 @@ func (f *Feeder) Trim(maxItems int) error {
 	}
 	LoggedPrint(f.out, "Cleaning up database file\n")
 	return f.Db.Vacuum()
+}
+
+func (f *Feeder) Out(format string, args ...any) {
+	LoggedPrint(f.out, format, args...)
+}
+
+func (f *Feeder) Err(format string, args ...any) {
+	LoggedPrint(f.err, format, args...)
 }

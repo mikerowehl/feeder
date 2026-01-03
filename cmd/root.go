@@ -63,6 +63,7 @@ command then pulls down the feeds and merges them into a summary page.`,
 			if err != nil {
 				return err
 			}
+			f.Verbose = viper.GetBool("verbose")
 
 			ctx := context.WithValue(cmd.Context(), feederKey, f)
 			cmd.SetContext(ctx)
@@ -103,11 +104,13 @@ command then pulls down the feeds and merges them into a summary page.`,
 	rootCmd.PersistentFlags().Int("max-items", 100,
 		"Maximum number of items to store per feed")
 	rootCmd.PersistentFlags().String("output", "", "filename to output HTML")
+	rootCmd.PersistentFlags().Bool("verbose", false, "Output additional info during run")
 
 	checkedBinding("db-dir", rootCmd)
 	checkedBinding("db-file", rootCmd)
 	checkedBinding("max-items", rootCmd)
 	checkedBinding("output", rootCmd)
+	checkedBinding("verbose", rootCmd)
 
 	for _, factory := range subcommands {
 		rootCmd.AddCommand(factory())

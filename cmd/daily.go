@@ -21,19 +21,23 @@ func NewDailyCmd() *cobra.Command {
 operation and only goes to the next if everything is okay.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			f := cmd.Context().Value(feederKey).(*feeder.Feeder)
+			f.Out("Fetching feeds\n")
 			err := f.Fetch()
 			if err != nil {
 				return fmt.Errorf("error fetching feeds: %w", err)
 			}
+			f.Out("Writing HTML file\n")
 			outFile := defaultedOutput()
 			err = f.WriteUnread(outFile)
 			if err != nil {
 				return fmt.Errorf("error writing out unread: %w", err)
 			}
+			f.Out("Updating read state\n")
 			err = f.MarkAll()
 			if err != nil {
 				return fmt.Errorf("error marking feeds: %w", err)
 			}
+			f.Out("Cleaning up database\n")
 			maxItems := viper.GetInt("max-items")
 			err = f.Trim(maxItems)
 			if err != nil {
