@@ -69,6 +69,13 @@ func TestFeed_FetchInvalidRSS(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestFeed_FetchBadHTTPStatus(t *testing.T) {
+	client := mock.NewMockClient(basicFeed, 404)
+	feed := rss.Feed{URL: "https://testing.com/dummyfeed.rss"}
+	err := feed.Fetch(client, 25)
+	require.Error(t, err)
+}
+
 func TestFeed_FetchNetworkError(t *testing.T) {
 	client := mock.NewMockClientWithError(context.DeadlineExceeded)
 	feed := rss.Feed{URL: "https://testing.com/dummyfeed.rss"}
