@@ -11,19 +11,31 @@ import (
 	"strings"
 )
 
-type MockRoundTripper func(req *http.Request) *http.Response
+type MockRoundTripper func(req *http.Request) (*http.Response, error)
 
 func (m MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	return m(req), nil
+	return m(req)
 }
 
-func NewMockClient(body string) *http.Client {
-	mockTransport := MockRoundTripper(func(req *http.Request) *http.Response {
+func NewMockClient(body string, statusCode int) *http.Client {
+	mockTransport := MockRoundTripper(func(req *http.Request) (*http.Response, error) {
 		return &http.Response{
-			StatusCode: 200,
+			StatusCode: statusCode,
 			Body:       io.NopCloser(strings.NewReader(body)),
 			Header:     make(http.Header),
-		}
+		}, nil
+	})
+
+	return &http.Client{Transport: mockTransport}
+}
+
+func NewMockClientWithError(err error) *http.Client {
+	mockTransport := MockRoundTripper(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: 500,
+			Body:       io.NopCloser(strings.NewReader("")),
+			Header:     make(http.Header),
+		}, err
 	})
 
 	return &http.Client{Transport: mockTransport}

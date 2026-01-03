@@ -51,7 +51,7 @@ func TestFeed_EmptyFeed(t *testing.T) {
 }
 
 func TestFeed_FetchSimple(t *testing.T) {
-	client := mock.NewMockClient(basicFeed)
+	client := mock.NewMockClient(basicFeed, 200)
 	feed := rss.Feed{URL: "https://testing.com/dummyfeed.rss"}
 	err := feed.Fetch(client, 25)
 	require.NoError(t, err)
