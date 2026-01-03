@@ -6,6 +6,7 @@ See LICENSE in the project root for full license information.
 package rss_test
 
 import (
+	"context"
 	"sort"
 	"testing"
 
@@ -59,4 +60,18 @@ func TestFeed_FetchSimple(t *testing.T) {
 	DateSortItems(feed.Items)
 	firstItem := feed.Items[0]
 	require.Equal(t, "Second Post", firstItem.Title)
+}
+
+func TestFeed_FetchInvalidRSS(t *testing.T) {
+	client := mock.NewMockClient("This isn't a feed", 200)
+	feed := rss.Feed{URL: "https://testing.com/dummyfeed.rss"}
+	err := feed.Fetch(client, 25)
+	require.Error(t, err)
+}
+
+func TestFeed_FetchNetworkError(t *testing.T) {
+	client := mock.NewMockClientWithError(context.DeadlineExceeded)
+	feed := rss.Feed{URL: "https://testing.com/dummyfeed.rss"}
+	err := feed.Fetch(client, 25)
+	require.Error(t, err)
 }

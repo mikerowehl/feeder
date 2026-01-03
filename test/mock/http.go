@@ -31,11 +31,7 @@ func NewMockClient(body string, statusCode int) *http.Client {
 
 func NewMockClientWithError(err error) *http.Client {
 	mockTransport := MockRoundTripper(func(req *http.Request) (*http.Response, error) {
-		return &http.Response{
-			StatusCode: 500,
-			Body:       io.NopCloser(strings.NewReader("")),
-			Header:     make(http.Header),
-		}, err
+		return nil, err
 	})
 
 	return &http.Client{Transport: mockTransport}
