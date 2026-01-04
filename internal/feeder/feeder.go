@@ -89,14 +89,16 @@ func (f *Feeder) Fetch() error {
 		feed := &feeds[i]
 		err := feed.Fetch(f.Client, maxItems)
 		if err != nil {
-			return fmt.Errorf("Error fetching feed %s: %w", feed.URL, err)
+			LoggedPrint(f.out, "  Error fetching feed %s: %v", feed.URL, err)
+			continue
 		}
 		err = f.Db.Save(feed)
 		if err != nil {
-			return fmt.Errorf("Error saving feed %s: %w", feed.URL, err)
+			LoggedPrint(f.out, "  Error saving feed %s: %v", feed.URL, err)
+			continue
 		}
 		if f.Verbose {
-			LoggedPrint(f.out, "Fetched: %s\n", feed.URL)
+			LoggedPrint(f.out, "  Fetched: %s\n", feed.URL)
 		}
 	}
 	return nil
@@ -204,7 +206,9 @@ func (f *Feeder) Trim(maxItems int) error {
 			LoggedPrint(f.out, "  Error trimming feed %v", err)
 		}
 	}
-	LoggedPrint(f.out, "Cleaning up database file\n")
+	if f.Verbose {
+		LoggedPrint(f.out, "Cleaning up database file\n")
+	}
 	return f.Db.Vacuum()
 }
 
