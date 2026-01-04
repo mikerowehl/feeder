@@ -8,6 +8,7 @@ package rss_test
 import (
 	"context"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/mikerowehl/feeder/internal/rss"
@@ -37,6 +38,23 @@ var basicFeed = `<?xml version="1.0" encoding="UTF-8" ?>
     </item>
   </channel>
 </rss>`
+
+var basicHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Feeder Test Html</title>
+  <link rel="alternate" type="application/rss+xml" title="Feeder RSS" href="https://example.com/testfeed.xml">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic">
+</head>
+<body>
+  <div>
+    Test content
+  </div>
+</body>
+</html>`
 
 func DateSortItems(items []rss.Item) {
 	sort.Slice(items, func(a, b int) bool {
@@ -81,4 +99,10 @@ func TestFeed_FetchNetworkError(t *testing.T) {
 	feed := rss.Feed{URL: "https://testing.com/dummyfeed.rss"}
 	err := feed.Fetch(client, 25)
 	require.Error(t, err)
+}
+
+func TestFeed_FindFeedLink(t *testing.T) {
+	feedUrl, err := rss.FindFeedLink(strings.NewReader(basicHtml))
+	require.NoError(t, err)
+	require.Equal(t, "https://example.com/testfeed.xml", feedUrl)
 }

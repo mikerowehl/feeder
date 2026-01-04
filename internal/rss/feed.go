@@ -10,11 +10,14 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"slices"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/mmcdole/gofeed"
+	"golang.org/x/net/html"
 	"gorm.io/gorm"
 )
 
@@ -70,13 +73,136 @@ func FetchFeedContent(url string, client *http.Client) (string, error) {
 	return string(body), nil
 }
 
+// Given a URL try to figure out if this is a feed URL, and lok up the feed
+// URL if this isn't a feed already. We do a HEAD request and check the
+// content type returned to try to figure out if this is a feed. If it's not a
+// feed, but it's HTML, parse the HTML and look for a feed alternative link in
+// the document header and return that.
+func GetFeedURL(givenURL string, client *http.Client) (string, error) {
+	req, err := http.NewRequest("HEAD", givenURL, nil)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("bad status for http request %v", resp.StatusCode)
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+
+	if strings.Contains(contentType, "application/rss+xml") ||
+		strings.Contains(contentType, "application/atom+xml") ||
+		strings.Contains(contentType, "application/xml") ||
+		strings.Contains(contentType, "text/xml") {
+		return givenURL, nil
+	}
+
+	if strings.Contains(contentType, "text/html") {
+		return DiscoverFeed(givenURL, client)
+	}
+
+	return "", fmt.Errorf("unexpected content type: %s", contentType)
+}
+
+// Look for an alternative link header in the HTML content of a page. This is
+// called after we do a HEAD on the URL given and we know it's HTML, so we
+// just need to fetch it and try to parse.
+func DiscoverFeed(givenURL string, client *http.Client) (string, error) {
+	req, err := http.NewRequest("GET", givenURL, nil)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	feedURL, err := FindFeedLink(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	base, err := url.Parse(givenURL)
+	if err != nil {
+		return "", err
+	}
+	feed, err := url.Parse(feedURL)
+	if err != nil {
+		return "", err
+	}
+
+	return base.ResolveReference(feed).String(), nil
+}
+
+// Parse the content of a page looking for the alternate link.
+func FindFeedLink(r io.Reader) (string, error) {
+	doc, err := html.Parse(r)
+	if err != nil {
+		return "", err
+	}
+
+	var feedURL string
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if feedURL != "" {
+			return // Already found
+		}
+
+		if n.Type == html.ElementNode && n.Data == "link" {
+			var rel, typ, href string
+			for _, attr := range n.Attr {
+				switch attr.Key {
+				case "rel":
+					rel = attr.Val
+				case "type":
+					typ = attr.Val
+				case "href":
+					href = attr.Val
+				}
+			}
+
+			// Check if it's an alternate feed link
+			if rel == "alternate" &&
+				(typ == "application/rss+xml" || typ == "application/atom+xml") &&
+				href != "" {
+				feedURL = href
+				return
+			}
+		}
+
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+	f(doc)
+
+	if feedURL == "" {
+		return "", fmt.Errorf("no feed found")
+	}
+
+	return feedURL, nil
+}
+
 // Initially fetch a feed given a URL. Updates just the metadata necessary to
-// make the feed itself. Doesn't process items in the feed. The feed at this
-// point doesn't have a database ID, so we wouldn't be able to make those
-// child items and link them to the parent yet.
+// make the feed itself. Doesn't process items in the feed. But does account
+// for the user giving the URL of content that has feed alternative link. So
+// first we do a HEAD request and look at the content type. If needed we try
+// to determine the feed URL from the content URL. That means the URL that
+// ends up in the Feed entry in the DB might not match what the user put in.
 func FeedFromURL(url string, client *http.Client) (Feed, error) {
-	feed := Feed{URL: url}
-	content, err := FetchFeedContent(url, client)
+	feedUrl, err := GetFeedURL(url, client)
+	if err != nil {
+		feedUrl = url
+	}
+	feed := Feed{URL: feedUrl}
+	content, err := FetchFeedContent(feedUrl, client)
 	if err != nil {
 		return feed, err
 	}
