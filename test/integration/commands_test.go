@@ -60,3 +60,20 @@ func TestIntegration_Add(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, stdout, "Feeder Basic Integration Test")
 }
+
+// Add a feed by giving the URL to content that points to a feed using an
+// alternative link header. The alternate link is relative, so this also tests
+// the URL resolution in the feed discovery logic
+func TestIntegration_AddDiscovery(t *testing.T) {
+	tmpDir := t.TempDir()
+	server := startTestFeedServer(t)
+	contentURL := getTestFeedURL(server, "basic.html")
+	testArgs := []string{"--db-dir", tmpDir, "--db-file", "test.db"}
+
+	_, _, err := executeCommand(t, append(testArgs, "add", contentURL)...)
+	require.NoError(t, err)
+
+	stdout, _, err := executeCommand(t, append(testArgs, "list")...)
+	require.NoError(t, err)
+	assert.Contains(t, stdout, "Feeder Basic Integration Test")
+}
