@@ -16,6 +16,7 @@ self contained and on a single page.
 Add a few feeds to the database:
 
 ```
+feeder add https://www.youtube.com/@tested
 feeder add https://rowehl.com/feed.xml
 feeder add https://pluralistic.net/feed/
 feeder add https://hackaday.com/blog/feed/
