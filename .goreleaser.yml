@@ -1,0 +1,40 @@
+version: 2
+project_name: feeder
+
+changelog:
+  use: git
+
+builds:
+  - id: feeder
+    main: ./main.go
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - 386
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s
+      - -w
+    binary: '{{ .ProjectName }}{{ if eq .Os "windows" }}.exe{{ end }}'
+
+archives:
+  - id: default
+    formats: [ 'tar.gz' ]
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+release:
+  name_template: 'v{{ .Version }}'
+  github:
+
+# no signing configured by default
+signs: []
